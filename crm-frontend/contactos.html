@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Contactos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <h2 class="logo">📊 ProCRM</h2>
+
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li class="active"><a href="contactos.html">Contactos</a></li>
+            <li><a href="nuevo-contacto.html">Nuevo Contacto</a></li>
+        </ul>
+    </nav>
+
+
+    <!-- CONTENIDO -->
+    <main class="content">
+
+        <!-- HEADER -->
+        <header class="topbar">
+            <h1>Lista de Contactos</h1>
+            <a href="nuevo-contacto.html" class="btn-primary">+ Nuevo</a>
+        </header>
+
+
+        <!-- PANEL TABLA -->
+        <section class="panel">
+
+            <input type="search" placeholder="Buscar contacto..." class="search-table">
+
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Empresa</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaContactos">
+                    <tr>
+                        <td>Juan Pérez</td>
+                        <td>juan@email.com</td>
+                        <td>Empresa X</td>
+                        <td><span class="badge green">Cliente</span></td>
+                    </tr>
+
+                    <tr>
+                        <td>Ana López</td>
+                        <td>ana@email.com</td>
+                        <td>Empresa Y</td>
+                        <td><span class="badge orange">Lead</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </section>
+
+    </main>
+</div>
+</body>
+</html>

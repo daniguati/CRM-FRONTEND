@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>CRM Dashboard</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <h2 class="logo">📊 ProCRM</h2>
+
+        <ul>
+            <li class="active"><a href="#" onclick="cargarVista('dashboard')">Dashboard</a></li>
+            <li><a href="contactos.html">Contactos</a></li>
+            <li><a href="#" onclick="cargarVista('oportunidades')">Oportunidades</a></li>
+            <li><a href="#" onclick="cargarVista('calendario')">Calendario</a></li>
+            <li><a href="#" onclick="cargarVista('reportes')">Reportes</a></li>
+            <li><a href="#" onclick="cargarVista('configuracion')">Configuración</a></li>
+        </ul>
+    </nav>
+
+    <!-- CONTENIDO -->
+    <main class="content">
+
+        <div id="contenidoDinamico">
+
+            <!-- HEADER -->
+            <header class="topbar">
+                <h1>Dashboard</h1>
+                <input type="search" placeholder="Buscar..." class="search">
+            </header>
+
+            <!-- CARDS -->
+            <section class="cards">
+                <div class="card blue">
+                    <h3>Total Contactos</h3>
+                    <p>120</p>
+                </div>
+
+                <div class="card green">
+                    <h3>Oportunidades</h3>
+                    <p>25</p>
+                </div>
+
+                <div class="card purple">
+                    <h3>Ventas</h3>
+                    <p>$50.000</p>
+                </div>
+
+                <div class="card orange">
+                    <h3>Actividades</h3>
+                    <p>8</p>
+                </div>
+            </section>
+
+            <!-- GRÁFICAS -->
+            <section class="panels">
+                <div class="panel">
+                    <h3>Ingresos Mensuales</h3>
+                    <div class="fake-chart"></div>
+                </div>
+
+                <div class="panel">
+                    <h3>Pipeline de Ventas</h3>
+                    <div class="fake-pie"></div>
+                </div>
+            </section>
+
+            <!-- LISTA -->
+            <section class="panel">
+                <h3>Contactos recientes</h3>
+                <ul class="list">
+                    <li>Juan Pérez - Cliente</li>
+                    <li>Ana López - Lead</li>
+                    <li>Carlos Ruiz - Prospecto</li>
+                </ul>
+            </section>
+
+        </div>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/app.js"></script>
+</body>
+</html>
+
+</body>
+</html>

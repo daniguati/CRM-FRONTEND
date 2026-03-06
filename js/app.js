@@ -6,33 +6,35 @@ const form = document.getElementById("contactForm");
 
 if (form) {
     form.addEventListener("submit", async function (e) {
-        e.preventDefault();
+        e.preventDefault(); // Prevenir que el formulario se envíe de manera convencional
 
+        // Obtener los valores de los campos del formulario
         const nombre = document.getElementById("nombre").value;
         const telefono = document.getElementById("telefono").value;
         const correo = document.getElementById("correo").value;
         const empresa = document.getElementById("empresa").value;
         const notas = document.getElementById("notas").value;
-        const estado = document.getElementById("estado").value;
 
+        // Crear el objeto con los datos del formulario
         const nuevoContacto = {
             nombre,
             telefono,
             correo,
             empresa,
-            notas,
-            estado
+            notas
         };
 
         try {
+            // Usamos fetch para enviar los datos al backend (API de contactos)
             const response = await fetch("http://localhost:3000/api/contactos", {
-                method: "POST",
+                method: "POST", // Método para enviar los datos
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json" // Especificamos que el cuerpo es un JSON
                 },
-                body: JSON.stringify(nuevoContacto)
+                body: JSON.stringify(nuevoContacto) // Convertimos el objeto a JSON
             });
 
+            // Verificamos si la respuesta del servidor es correcta
             if (response.ok) {
                 alert("✅ Contacto guardado correctamente");
                 window.location.href = "contactos.html"; // Redirigir a la página de contactos
@@ -45,7 +47,6 @@ if (form) {
         }
     });
 }
-
 
 /* =============================
    MOSTRAR CONTACTOS

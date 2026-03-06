@@ -5,31 +5,44 @@
 const form = document.getElementById("contactForm");
 
 if (form) {
-
-    form.addEventListener("submit", function(e) {
+    form.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const nombre = document.getElementById("nombre").value;
-        const email = document.getElementById("email").value;
+        const telefono = document.getElementById("telefono").value;
+        const correo = document.getElementById("correo").value;
         const empresa = document.getElementById("empresa").value;
+        const notas = document.getElementById("notas").value;
         const estado = document.getElementById("estado").value;
 
         const nuevoContacto = {
             nombre,
-            email,
+            telefono,
+            correo,
             empresa,
+            notas,
             estado
         };
 
-        let contactos = JSON.parse(localStorage.getItem("contactos")) || [];
+        try {
+            const response = await fetch("http://localhost:3000/api/contactos", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(nuevoContacto)
+            });
 
-        contactos.push(nuevoContacto);
-
-        localStorage.setItem("contactos", JSON.stringify(contactos));
-
-        alert("✅ Contacto guardado correctamente");
-        window.location.href = "contactos.html";
-;
+            if (response.ok) {
+                alert("✅ Contacto guardado correctamente");
+                window.location.href = "contactos.html"; // Redirigir a la página de contactos
+            } else {
+                alert("❌ Hubo un error al guardar el contacto");
+            }
+        } catch (error) {
+            console.error("Error al guardar el contacto:", error);
+            alert("❌ Hubo un error al guardar el contacto");
+        }
     });
 }
 
@@ -42,41 +55,75 @@ const tabla = document.getElementById("tablaContactos");
 
 if (tabla) {
 
-    const contactos = JSON.parse(localStorage.getItem("contactos")) || [];
+    // Función para obtener los contactos
+    const obtenerContactos = async () => {
+        try {
+            const response = await fetch("http://localhost:3000/api/contactos");
+            const contactos = await response.json();
 
-    if (contactos.length === 0) {
+            tabla.innerHTML = ""; // Limpiar la tabla antes de agregar nuevos contactos
 
-        tabla.innerHTML = `
-        <tr>
-            <td colspan="4" style="padding: 20px; text-align:center; color:#6b7280;">
-                No hay contactos registrados. Presiona “+ Nuevo” para agregar el primero.
-            </td>
-        </tr>
-        `;
+            if (contactos.length === 0) {
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="padding: 20px; text-align:center; color:#6b7280;">
+                            No hay contactos registrados. Presiona “+ Nuevo” para agregar el primero.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                contactos.forEach(contacto => {
+                    const row = document.createElement("tr");
 
-    } else {
+                    row.innerHTML = `
+                        <td>${contacto.nombre}</td>
+                        <td>${contacto.telefono}</td>
+                        <td>${contacto.correo}</td>
+                        <td>${contacto.empresa}</td>
+                        <td><span class="badge ${contacto.estado === 'Cliente' ? 'green' : 'orange'}">${contacto.estado}</span></td>
+                        <td>
+                            <button class="btn-edit" data-id="${contacto.id}">Editar</button>
+                            <button class="btn-delete" data-id="${contacto.id}">Eliminar</button>
+                        </td>
+                    `;
+                    tabla.appendChild(row);
+                });
+            }
+        } catch (error) {
+            console.error("Error al obtener los contactos:", error);
+        }
+    };
 
-        contactos.forEach(contacto => {
+    // Llamamos a la función para obtener los contactos
+    obtenerContactos();
 
-            const fila = `
-            <tr>
-                <td>${contacto.nombre}</td>
-                <td>${contacto.email}</td>
-                <td>${contacto.empresa}</td>
-                <td>
-                    <span class="badge ${
-                        contacto.estado === "Cliente" ? "green" : "orange"
-                    }">
-                        ${contacto.estado}
-                    </span>
-                </td>
-            </tr>
-            `;
+    // Agregar el evento de eliminar contacto
+    tabla.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("btn-delete")) {
+            const id = e.target.getAttribute("data-id");
+            try {
+                const response = await fetch(`http://localhost:3000/api/contactos/${id}`, {
+                    method: "DELETE"
+                });
 
-            tabla.innerHTML += fila;
-        });
+                if (response.ok) {
+                    alert("✅ Contacto eliminado correctamente");
+                    obtenerContactos(); // Recargar la lista de contactos
+                } else {
+                    alert("❌ Hubo un error al eliminar el contacto");
+                }
+            } catch (error) {
+                console.error("Error al eliminar el contacto:", error);
+                alert("❌ Hubo un error al eliminar el contacto");
+            }
+        }
 
-    }
+        if (e.target.classList.contains("btn-edit")) {
+            const id = e.target.getAttribute("data-id");
+            // Aquí podrías agregar un formulario de edición, o redirigir a una nueva página con el contacto para editar
+            window.location.href = `editar-contacto.html?id=${id}`;
+        }
+    });
 }
 function cargarVista(vista) {
 

@@ -6,11 +6,10 @@
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-
 <div class="layout">
 
     <nav class="sidebar">
-        <h2 class="logo">📊 ProCRM</h2>
+        <h2 class="logo">Tikaylab</h2>
         <ul>
             <li><a href="index.html">Dashboard</a></li>
             <li><a href="contactos.html">Contactos</a></li>
@@ -26,22 +25,23 @@
 
         <section class="panel">
 
-            <form id="contactForm">
+            <!-- Formulario para ingresar un nuevo contacto -->
+            <form id="contactForm" method="POST">
 
                 <label>Nombre</label>
-                <input type="text" id="nombre" required>
+                <input type="text" id="nombre" name="nombre" required>
 
-                <label>Email</label>
-                <input type="email" id="email" required>
+                <label>Teléfono</label>
+                <input type="text" id="telefono" name="telefono" required>
+
+                <label>Correo</label>
+                <input type="email" id="correo" name="correo" required>
 
                 <label>Empresa</label>
-                <input type="text" id="empresa">
+                <input type="text" id="empresa" name="empresa">
 
-                <label>Estado</label>
-                <select id="estado">
-                    <option value="Cliente">Cliente</option>
-                    <option value="Lead">Lead</option>
-                </select>
+                <label>Notas</label>
+                <input type="text" id="notas" name="notas">
 
                 <button class="btn-primary">Guardar</button>
 

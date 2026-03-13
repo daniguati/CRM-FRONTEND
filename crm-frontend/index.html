@@ -29,10 +29,19 @@
         <div id="contenidoDinamico">
 
             <!-- HEADER -->
-            <header class="topbar">
-                <h1>Dashboard</h1>
-                <input type="search" placeholder="Buscar..." class="search">
-            </header>
+           <header class="topbar">
+
+    <h1>Dashboard</h1>
+
+    <div class="topbar-actions">
+        <input type="search" placeholder="Buscar..." class="search">
+
+        <button onclick="logout()" class="btn-logout">
+            Cerrar sesión
+        </button>
+    </div>
+
+</header>
 
             <!-- CARDS -->
             <section class="cards">

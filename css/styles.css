@@ -258,3 +258,22 @@ form button {
   }
 }
 
+.btn-logout{
+  background:#ef4444;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  margin-left:10px;
+}
+
+.btn-logout:hover{
+  background:#dc2626;
+}
+
+.topbar-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}

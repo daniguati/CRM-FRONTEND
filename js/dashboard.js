@@ -19,16 +19,48 @@ function cargarVista(vista) {
     `;
   }
 
+  
   if (vista === "calendario") {
     contenedor.innerHTML = `
-      <h1>Calendario</h1>
+      <div class="vista-header vista-header-flex">
+  <div>
+    <h1>Calendario</h1>
+    <p>Actividades programadas del día</p>
+  </div>
+  <button class="btn-primary">+ Nueva actividad</button>
+</div>
+
       <div class="panel">
-        <p>📅 Reunión con Cliente - 10:00 AM</p>
-        <p>📅 Llamada seguimiento - 2:00 PM</p>
-        <p>📅 Presentación propuesta - Mañana</p>
+        <div class="event-item">
+          <div class="event-icon">📅</div>
+          <div class="event-info">
+            <h3>Reunión con Cliente</h3>
+            <p>Hoy - 10:00 AM</p>
+          </div>
+          <span class="event-badge">Importante</span>
+        </div>
+
+        <div class="event-item">
+          <div class="event-icon">📞</div>
+          <div class="event-info">
+            <h3>Llamada de seguimiento</h3>
+            <p>Hoy - 2:00 PM</p>
+          </div>
+          <span class="event-badge secondary">Pendiente</span>
+        </div>
+
+        <div class="event-item">
+          <div class="event-icon">🧾</div>
+          <div class="event-info">
+            <h3>Presentación de propuesta</h3>
+            <p>Mañana - 9:00 AM</p>
+          </div>
+          <span class="event-badge success">Programado</span>
+        </div>
       </div>
     `;
   }
+
 
   if (vista === "reportes") {
     contenedor.innerHTML = `

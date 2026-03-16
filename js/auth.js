@@ -45,15 +45,22 @@ if (loginForm) {
 
         localStorage.setItem("token", result.token);
 
-        alert("Login exitoso!");
+        const mensajeLogin = document.getElementById("mensajeLogin");
 
+        mensajeLogin.className = "mensaje-login success";
+        mensajeLogin.textContent = "Autenticación exitosa";;
+
+        setTimeout(() => {
         window.location.href = "/crm-frontend/index.html";
+        }, 1200);
       } else {
-        alert("❌ Credenciales incorrectas");
+        mensajeLogin.className = "mensaje-login error";
+        mensajeLogin.textContent = "Credenciales incorrectas";;
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      alert("❌ Hubo un error al intentar iniciar sesión");
+      amensajeLogin.className = "mensaje-login error";
+    mensajeLogin.textContent = "Error al iniciar sesión";;
     }
   });
 }

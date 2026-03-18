@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Dashboard</title>
     <link rel="stylesheet" href="../css/styles.css">
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 </head>
 <body>
 
@@ -25,23 +29,20 @@
 
     <!-- CONTENIDO -->
     <main class="content">
-
         <div id="contenidoDinamico">
 
             <!-- HEADER -->
-           <header class="topbar">
+            <header class="topbar">
+                <h1>Dashboard</h1>
 
-    <h1>Dashboard</h1>
+                <div class="topbar-actions">
+                    <input type="search" placeholder="Buscar..." class="search">
 
-    <div class="topbar-actions">
-        <input type="search" placeholder="Buscar..." class="search">
-
-        <button onclick="logout()" class="btn-logout">
-            Cerrar sesión
-        </button>
-    </div>
-
-</header>
+                    <button onclick="logout()" class="btn-logout">
+                        Cerrar sesión
+                    </button>
+                </div>
+            </header>
 
             <!-- CARDS -->
             <section class="cards">
@@ -90,15 +91,16 @@
             </section>
 
         </div>
-
     </main>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
 <script src="../js/auth.js"></script>
 <script src="../js/dashboard.js"></script>
 <script src="../js/main.js"></script>
-</body>
-</html>
-
 </body>
 </html>

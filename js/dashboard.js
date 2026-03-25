@@ -238,8 +238,7 @@ function cargarVista(vista) {
       }
     }, 100);
   }
-
-  if (vista === "configuracion") {
+if (vista === "configuracion") {
   contenedor.innerHTML = `
     <div class="vista-header">
       <h1>Configuración</h1>
@@ -266,7 +265,7 @@ function cargarVista(vista) {
 
         <div class="config-actions">
           <button class="btn-primary">Editar perfil</button>
-          <button class="btn-secondary">Cambiar contraseña</button>
+          <button class="btn-secondary" id="btnCambiarPassword">Cambiar contraseña</button>
         </div>
       </div>
 
@@ -334,9 +333,167 @@ function cargarVista(vista) {
       </div>
 
     </div>
+
+    <!-- Modal cambiar contraseña -->
+    <div id="modalCambiarPassword" class="modal-password oculto">
+      <div class="modal-password-content">
+        <h3>Cambiar contraseña</h3>
+
+        <input 
+          type="password" 
+          id="currentPassword" 
+          placeholder="Contraseña actual"
+          class="input-password"
+        />
+
+        <input 
+          type="password" 
+          id="newPassword" 
+          placeholder="Nueva contraseña"
+          class="input-password"
+        />
+
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          placeholder="Confirmar nueva contraseña"
+          class="input-password"
+        />
+
+        <p id="passwordMessage" class="password-message"></p>
+
+        <div class="modal-password-actions">
+          <button class="btn-primary" id="guardarNuevaPassword">Guardar</button>
+          <button class="btn-secondary" id="cerrarModalPassword">Cancelar</button>
+        </div>
+      </div>
+    </div>
   `;
+
+  inicializarCambioPassword();
 }
 
+function inicializarCambioPassword() {
+  console.log("inicializarCambioPassword SI se ejecutó");
+
+  const btnCambiarPassword = document.getElementById("btnCambiarPassword");
+  const modal = document.getElementById("modalCambiarPassword");
+  const btnCerrarModal = document.getElementById("cerrarModalPassword");
+  const btnGuardar = document.getElementById("guardarNuevaPassword");
+  const passwordMessage = document.getElementById("passwordMessage");
+
+  const currentPasswordInput = document.getElementById("currentPassword");
+  const newPasswordInput = document.getElementById("newPassword");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
+
+  console.log("btnCambiarPassword:", btnCambiarPassword);
+  console.log("modal:", modal);
+  console.log("btnCerrarModal:", btnCerrarModal);
+  console.log("btnGuardar:", btnGuardar);
+
+  if (!btnCambiarPassword || !modal) {
+    console.log("No encontró botón o modal");
+    return;
+  }
+
+  btnCambiarPassword.addEventListener("click", () => {
+    console.log("Click en cambiar contraseña");
+    modal.classList.remove("oculto");
+    passwordMessage.textContent = "";
+  });
+
+  btnCerrarModal.addEventListener("click", () => {
+    modal.classList.add("oculto");
+    limpiarFormularioPassword();
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.classList.add("oculto");
+      limpiarFormularioPassword();
+    }
+  });
+
+  btnGuardar.addEventListener("click", async () => {
+    const currentPassword = currentPasswordInput.value.trim();
+    const newPassword = newPasswordInput.value.trim();
+    const confirmPassword = confirmPasswordInput.value.trim();
+
+    const token = localStorage.getItem("token");
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      passwordMessage.textContent = "Todos los campos son obligatorios";
+      passwordMessage.style.color = "red";
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      passwordMessage.textContent = "Las nuevas contraseñas no coinciden";
+      passwordMessage.style.color = "red";
+      return;
+    }
+
+    if (!token) {
+      passwordMessage.textContent = "No se encontró sesión activa. Inicia sesión nuevamente.";
+      passwordMessage.style.color = "red";
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        passwordMessage.textContent = data.message || "Error al cambiar contraseña";
+        passwordMessage.style.color = "red";
+        return;
+      }
+
+      passwordMessage.textContent = data.message || "Contraseña actualizada correctamente";
+      passwordMessage.style.color = "green";
+
+      currentPasswordInput.value = "";
+      newPasswordInput.value = "";
+      confirmPasswordInput.value = "";
+
+      passwordMessage.textContent = "Contraseña actualizada correctamente";
+passwordMessage.style.color = "green";
+
+currentPasswordInput.value = "";
+newPasswordInput.value = "";
+confirmPasswordInput.value = "";
+
+// cerrar después de 3 segundos
+setTimeout(() => {
+  modal.classList.add("oculto");
+  limpiarFormularioPassword();
+}, 3000);
+
+    } catch (error) {
+      passwordMessage.textContent = "Error de conexión con el servidor";
+      passwordMessage.style.color = "red";
+    }
+  });
+
+  function limpiarFormularioPassword() {
+    currentPasswordInput.value = "";
+    newPasswordInput.value = "";
+    confirmPasswordInput.value = "";
+    passwordMessage.textContent = "";
+  }
+}
   if (vista === "dashboard") {
     location.reload();
   }

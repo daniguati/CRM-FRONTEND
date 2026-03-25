@@ -14,6 +14,7 @@ const paginasProtegidas = [
 if (paginasProtegidas.includes(rutaActual) && !token) {
   window.location.href = "/crm-frontend/login.html";
 }
+
 /* =============================
    LOGIN
 ============================= */
@@ -25,6 +26,7 @@ if (loginForm) {
 
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const mensajeLogin = document.getElementById("mensajeLogin");
 
     const loginData = {
       email,
@@ -40,36 +42,30 @@ if (loginForm) {
         body: JSON.stringify(loginData),
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      const result = await response.json();
 
+      if (response.ok) {
         localStorage.setItem("token", result.token);
 
-        const mensajeLogin = document.getElementById("mensajeLogin");
-
         mensajeLogin.className = "mensaje-login success";
-        mensajeLogin.textContent = "Autenticación exitosa";;
+        mensajeLogin.textContent = "Autenticación exitosa";
 
         setTimeout(() => {
-        window.location.href = "/crm-frontend/index.html";
+          window.location.href = "/crm-frontend/index.html";
         }, 1200);
       } else {
         mensajeLogin.className = "mensaje-login error";
-        mensajeLogin.textContent = "Credenciales incorrectas";;
+        mensajeLogin.textContent = result.message || "Credenciales incorrectas";
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      amensajeLogin.className = "mensaje-login error";
-    mensajeLogin.textContent = "Error al iniciar sesión";;
+      mensajeLogin.className = "mensaje-login error";
+      mensajeLogin.textContent = "Error al iniciar sesión";
     }
   });
 }
+
 function logout() {
-
-  // eliminar token
   localStorage.removeItem("token");
-
-  // redirigir al login
   window.location.href = "/crm-frontend/login.html";
-
 }

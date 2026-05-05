@@ -1,3 +1,36 @@
+/* =============================
+   NOTIFICACIONES ELEGANTES
+============================= */
+
+function mostrarNotificacion(mensaje, tipo = "success") {
+  let contenedor = document.querySelector(".toast-container");
+
+  if (!contenedor) {
+    contenedor = document.createElement("div");
+    contenedor.className = "toast-container";
+    document.body.appendChild(contenedor);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${tipo}`;
+
+  const icono = tipo === "success" ? "✅" : "❌";
+
+  toast.innerHTML = `
+    <span class="toast-icon">${icono}</span>
+    <span class="toast-message">${mensaje}</span>
+  `;
+
+  contenedor.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("toast-hide");
+  }, 2500);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
 
 /* =============================
    DETECTAR EDICION
@@ -21,6 +54,10 @@ if (idEditar) {
       document.getElementById("correo").value = contacto.correo;
       document.getElementById("empresa").value = contacto.empresa;
       document.getElementById("notas").value = contacto.notas;
+    })
+    .catch((error) => {
+      console.error("Error al cargar contacto:", error);
+      mostrarNotificacion("Error al cargar el contacto", "error");
     });
 }
 
@@ -66,14 +103,21 @@ if (form) {
       });
 
       if (response.ok) {
-        alert("✅ Contacto guardado correctamente");
+        const mensaje = idEditar
+          ? "Contacto actualizado correctamente"
+          : "Contacto guardado correctamente";
 
-        window.location.href = "contactos.html";
+        mostrarNotificacion(mensaje, "success");
+
+        setTimeout(() => {
+          window.location.href = "contactos.html";
+        }, 1200);
       } else {
-        alert("❌ Error al guardar");
+        mostrarNotificacion("Error al guardar el contacto", "error");
       }
     } catch (error) {
       console.error(error);
+      mostrarNotificacion("Error de conexión con el servidor", "error");
     }
   });
 }
@@ -96,7 +140,7 @@ if (tabla) {
       if (contactos.length === 0) {
         tabla.innerHTML = `
           <tr>
-            <td colspan="6" style="padding:20px;text-align:center;color:#6b7280;">
+            <td colspan="6" class="empty-table">
               No hay contactos registrados. Presiona "+ Nuevo"
             </td>
           </tr>
@@ -113,19 +157,21 @@ if (tabla) {
             <td>${contacto.notas}</td>
 
             <td>
+              <div class="action-buttons">
+                <button 
+                  class="btn-action btn-edit"
+                  onclick="editarContacto(${contacto.id})">
+                  <span>✏️</span>
+                  Editar
+                </button>
 
-              <button 
-                class="btn-edit"
-                onclick="editarContacto(${contacto.id})">
-                Editar
-              </button>
-
-              <button 
-                class="btn-delete"
-                data-id="${contacto.id}">
-                Eliminar
-              </button>
-
+                <button 
+                  class="btn-action btn-delete"
+                  data-id="${contacto.id}">
+                  <span>🗑️</span>
+                  Eliminar
+                </button>
+              </div>
             </td>
           `;
 
@@ -134,6 +180,7 @@ if (tabla) {
       }
     } catch (error) {
       console.error("Error al obtener contactos:", error);
+      mostrarNotificacion("Error al cargar los contactos", "error");
     }
   };
 
@@ -144,26 +191,28 @@ if (tabla) {
   ============================= */
 
   tabla.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("btn-delete")) {
-      const id = e.target.getAttribute("data-id");
+    const botonEliminar = e.target.closest(".btn-delete");
+
+    if (botonEliminar) {
+      const id = botonEliminar.getAttribute("data-id");
 
       try {
         const response = await fetch(
           `http://localhost:3000/api/contactos/${id}`,
           {
             method: "DELETE",
-          },
+          }
         );
 
         if (response.ok) {
-          alert("✅ Contacto eliminado correctamente");
-
+          mostrarNotificacion("Contacto eliminado correctamente", "success");
           obtenerContactos();
         } else {
-          alert("❌ Error al eliminar contacto");
+          mostrarNotificacion("Error al eliminar contacto", "error");
         }
       } catch (error) {
         console.error("Error:", error);
+        mostrarNotificacion("Error de conexión con el servidor", "error");
       }
     }
   });

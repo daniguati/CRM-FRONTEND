@@ -1,11 +1,27 @@
 /* =============================
    CARGAR VISTAS
 ============================= */
+function actualizarMenuActivo(vista) {
+  const itemsMenu = document.querySelectorAll(".sidebar ul li");
+
+  itemsMenu.forEach((item) => {
+    item.classList.remove("active");
+  });
+
+  const itemActivo = document.querySelector(
+    `.sidebar ul li[data-vista="${vista}"]`
+  );
+
+  if (itemActivo) {
+    itemActivo.classList.add("active");
+  }
+}
 
 function cargarVista(vista) {
   const contenedor = document.getElementById("contenidoDinamico");
 
   if (!contenedor) return;
+    actualizarMenuActivo(vista);
 
   if (vista === "oportunidades") {
     contenedor.innerHTML = `
@@ -777,4 +793,91 @@ function cerrarModalConfirmarEliminar() {
   }
 
   window.eventoAEliminar = null;
+}
+/* =============================
+   RESUMEN DINÁMICO DASHBOARD
+============================= */
+
+async function cargarResumenDashboard() {
+  const totalContactos = document.getElementById("totalContactosDashboard");
+
+  if (!totalContactos) return;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/contactos");
+
+    if (!response.ok) {
+      throw new Error("No se pudo obtener la lista de contactos");
+    }
+
+    const contactos = await response.json();
+
+    totalContactos.textContent = contactos.length;
+  } catch (error) {
+    console.error("Error al cargar resumen del dashboard:", error);
+    totalContactos.textContent = "0";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  cargarResumenDashboard();
+  cargarContactosRecientesDashboard();
+});
+/* =============================
+   CONTACTOS RECIENTES DASHBOARD
+============================= */
+
+async function cargarContactosRecientesDashboard() {
+  const lista = document.getElementById("contactosRecientesDashboard");
+
+  if (!lista) return;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/contactos");
+
+    if (!response.ok) {
+      throw new Error("No se pudieron cargar los contactos recientes");
+    }
+
+    const contactos = await response.json();
+
+    lista.innerHTML = "";
+
+    if (contactos.length === 0) {
+      lista.innerHTML = `
+        <li class="list-empty">
+          No hay contactos registrados.
+        </li>
+      `;
+      return;
+    }
+
+    const contactosRecientes = [...contactos]
+      .sort((a, b) => b.id - a.id)
+      .slice(0, 3);
+
+    contactosRecientes.forEach((contacto) => {
+      const item = document.createElement("li");
+      item.classList.add("contacto-reciente-item");
+
+      const nombre = document.createElement("strong");
+      nombre.textContent = contacto.nombre || "Sin nombre";
+
+      const detalle = document.createElement("span");
+      detalle.textContent = contacto.empresa || contacto.correo || "Sin información";
+
+      item.appendChild(nombre);
+      item.appendChild(detalle);
+
+      lista.appendChild(item);
+    });
+  } catch (error) {
+    console.error("Error al cargar contactos recientes:", error);
+
+    lista.innerHTML = `
+      <li class="list-empty">
+        Error al cargar contactos recientes.
+      </li>
+    `;
+  }
 }

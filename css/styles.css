@@ -1062,3 +1062,232 @@ form button {
 .password-message.error {
   color: #dc2626;
 }
+/* =========================
+   NOTIFICACIONES TOAST
+========================= */
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  min-width: 280px;
+  max-width: 380px;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+  border: 1px solid #e5e7eb;
+  animation: toastEntrada 0.3s ease forwards;
+}
+
+.toast-success {
+  border-left: 5px solid #10b981;
+}
+
+.toast-error {
+  border-left: 5px solid #ef4444;
+}
+
+.toast-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.toast-hide {
+  animation: toastSalida 0.3s ease forwards;
+}
+
+@keyframes toastEntrada {
+  from {
+    opacity: 0;
+    transform: translateX(40px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastSalida {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(40px) scale(0.96);
+  }
+}
+
+/* =========================
+   BOTONES DE ACCIONES CONTACTOS
+========================= */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.btn-action span {
+  font-size: 0.9rem;
+}
+
+.btn-edit {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.btn-edit:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+}
+
+.btn-delete {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.btn-delete:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 8px 18px rgba(239, 68, 68, 0.25);
+  transform: translateY(-2px);
+}
+
+.btn-action:active {
+  transform: scale(0.96);
+}
+
+/* =========================
+   TABLA VACÍA
+========================= */
+.empty-table {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* =========================
+   AJUSTE VISUAL TABLA CONTACTOS
+========================= */
+.modern-table td:last-child,
+.modern-table th:last-child {
+  text-align: left;
+  min-width: 190px;
+}
+/* =========================
+   CARDS CLICKEABLES DASHBOARD
+========================= */
+.card-clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+}
+
+.card-clickable:active {
+  transform: scale(0.98);
+}
+/* =========================
+   CONTACTOS RECIENTES DASHBOARD
+========================= */
+.panel-header-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panel-header-simple h3 {
+  margin: 0;
+}
+
+.link-panel {
+  color: #2563eb;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link-panel:hover {
+  text-decoration: underline;
+}
+
+.contacto-reciente-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.contacto-reciente-item strong {
+  color: #111827;
+  font-size: 0.95rem;
+}
+
+.contacto-reciente-item span {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.list-empty {
+  padding: 16px 0;
+  color: #64748b;
+  font-weight: 500;
+}

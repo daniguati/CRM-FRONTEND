@@ -18,12 +18,29 @@
         <h2 class="logo">Tikaylab</h2>
 
         <ul>
-            <li class="active"><a href="#" onclick="cargarVista('dashboard')">Dashboard</a></li>
-            <li><a href="contactos.html">Contactos</a></li>
-            <li><a href="#" onclick="cargarVista('oportunidades')">Oportunidades</a></li>
-            <li><a href="#" onclick="cargarVista('calendario')">Calendario</a></li>
-            <li><a href="#" onclick="cargarVista('reportes')">Reportes</a></li>
-            <li><a href="#" onclick="cargarVista('configuracion')">Configuración</a></li>
+           <li class="active" data-vista="dashboard">
+  <a href="#" onclick="cargarVista('dashboard')">Dashboard</a>
+</li>
+
+<li>
+  <a href="contactos.html">Contactos</a>
+</li>
+
+<li data-vista="oportunidades">
+  <a href="#" onclick="cargarVista('oportunidades')">Oportunidades</a>
+</li>
+
+<li data-vista="calendario">
+  <a href="#" onclick="cargarVista('calendario')">Calendario</a>
+</li>
+
+<li data-vista="reportes">
+  <a href="#" onclick="cargarVista('reportes')">Reportes</a>
+</li>
+
+<li data-vista="configuracion">
+  <a href="#" onclick="cargarVista('configuracion')">Configuración</a>
+</li>
         </ul>
     </nav>
 
@@ -45,27 +62,27 @@
             </header>
 
             <!-- CARDS -->
-            <section class="cards">
-                <div class="card blue">
-                    <h3>Total Contactos</h3>
-                    <p>120</p>
-                </div>
+<section class="cards">
+    <div class="card blue card-clickable" onclick="window.location.href='contactos.html'">
+        <h3>Total Contactos</h3>
+        <p id="totalContactosDashboard">0</p>
+    </div>
 
-                <div class="card green">
-                    <h3>Oportunidades</h3>
-                    <p>25</p>
-                </div>
+    <div class="card green card-clickable" onclick="cargarVista('oportunidades')">
+        <h3>Oportunidades</h3>
+        <p>25</p>
+    </div>
 
-                <div class="card purple">
-                    <h3>Ventas</h3>
-                    <p>$50.000</p>
-                </div>
+    <div class="card purple card-clickable" onclick="cargarVista('reportes')">
+        <h3>Ventas</h3>
+        <p>$50.000</p>
+    </div>
 
-                <div class="card orange">
-                    <h3>Actividades</h3>
-                    <p>8</p>
-                </div>
-            </section>
+    <div class="card orange card-clickable" onclick="cargarVista('calendario')">
+        <h3>Actividades</h3>
+        <p>8</p>
+    </div>
+</section>
 
             <!-- GRÁFICAS -->
             <section class="panels">
@@ -80,16 +97,17 @@
                 </div>
             </section>
 
-            <!-- LISTA -->
-            <section class="panel">
-                <h3>Contactos recientes</h3>
-                <ul class="list">
-                    <li>Juan Pérez - Cliente</li>
-                    <li>Ana López - Lead</li>
-                    <li>Carlos Ruiz - Prospecto</li>
-                </ul>
-            </section>
+          <!-- LISTA -->
+<section class="panel">
+    <div class="panel-header-simple">
+        <h3>Contactos recientes</h3>
+        <a href="contactos.html" class="link-panel">Ver todos →</a>
+    </div>
 
+    <ul class="list" id="contactosRecientesDashboard">
+        <li>Cargando contactos...</li>
+    </ul>
+</section>
         </div>
     </main>
 </div>

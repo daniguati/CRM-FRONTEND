@@ -1,6 +1,27 @@
-/* =============================
-   CARGAR VISTAS
-============================= */
+let graficaBarrasInstance = null;
+let graficaPieInstance = null;
+let oportunidadEditandoId = null;
+
+const etapasOportunidad = {
+  prospecto: "Prospecto",
+  propuesta: "Propuesta",
+  negociacion: "Negociación",
+  ganada: "Ganada",
+  perdida: "Perdida",
+};
+
+const estadosContacto = {
+  lead: "Lead",
+  cliente: "Cliente",
+  inactivo: "Inactivo",
+};
+
+function escapeHtml(value) {
+  const elemento = document.createElement("div");
+  elemento.textContent = value || "";
+  return elemento.innerHTML;
+}
+
 function actualizarMenuActivo(vista) {
   const itemsMenu = document.querySelectorAll(".sidebar ul li");
 
@@ -8,531 +29,416 @@ function actualizarMenuActivo(vista) {
     item.classList.remove("active");
   });
 
-  const itemActivo = document.querySelector(
-    `.sidebar ul li[data-vista="${vista}"]`
-  );
+  const itemActivo = document.querySelector(`.sidebar ul li[data-vista="${vista}"]`);
 
   if (itemActivo) {
     itemActivo.classList.add("active");
   }
 }
 
-function cargarVista(vista) {
+async function cargarVista(vista) {
   const contenedor = document.getElementById("contenidoDinamico");
 
   if (!contenedor) return;
-    actualizarMenuActivo(vista);
+
+  actualizarMenuActivo(vista);
+
+  if (vista === "dashboard") {
+    location.reload();
+    return;
+  }
 
   if (vista === "oportunidades") {
-    contenedor.innerHTML = `
-      <div class="vista-header">
-        <h1>Oportunidades</h1>
-        <p>Resumen rápido de negocios activos</p>
-      </div>
-
-      <div class="cards-grid">
-        <div class="info-card">
-          <span class="tag tag-blue">Nueva</span>
-          <h3>Venta Software</h3>
-          <p>Empresa interesada en el sistema CRM completo.</p>
-          <strong>$2.500</strong>
-        </div>
-
-        <div class="info-card">
-          <span class="tag tag-green">En proceso</span>
-          <h3>Licencias Empresa</h3>
-          <p>Renovación de licencias para equipo comercial.</p>
-          <strong>$1.200</strong>
-        </div>
-
-        <div class="info-card">
-          <span class="tag tag-purple">Prioritaria</span>
-          <h3>Soporte Premium</h3>
-          <p>Cliente solicitó plan avanzado de soporte técnico.</p>
-          <strong>$800</strong>
-        </div>
-      </div>
-    `;
+    await cargarVistaOportunidades(contenedor);
+    return;
   }
 
   if (vista === "calendario") {
-  contenedor.innerHTML = `
-   <div class="vista-header vista-header-flex">
-        <div>
-          <h1>Calendario</h1>
-          <p>Gestiona tus eventos y actividades</p>
-        </div>
-        <button class="btn-primary" id="btnNuevaActividad">+ Nueva actividad</button>
-      </div>
+    cargarVistaCalendario(contenedor);
+    return;
+  }
 
-      <div class="panel panel-calendario">
-        <div id="calendar"></div>
-      </div>
+  if (vista === "reportes") {
+    await cargarVistaReportes(contenedor);
+    return;
+  }
 
-      <!-- MODAL NUEVO EVENTO -->
-      <div class="modal-overlay oculto" id="modalEventoOverlay">
-        <div class="modal-evento">
-          <div class="modal-header">
-            <h2>Nueva actividad</h2>
-            <button class="modal-close" id="cerrarModalEvento">&times;</button>
-          </div>
-
-          <form id="formEvento" class="form-evento">
-            <label for="tituloEvento">Título</label>
-            <input type="text" id="tituloEvento" placeholder="Ej: Reunión con cliente" required>
-
-            <label for="fechaEvento">Fecha</label>
-            <input type="date" id="fechaEvento" required>
-
-            <label for="horaEvento">Hora</label>
-            <input type="time" id="horaEvento" required>
-
-            <div class="modal-actions">
-              <button type="button" class="btn-secondary" id="cancelarModalEvento">Cancelar</button>
-              <button type="submit" class="btn-primary">Guardar evento</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- MODAL DETALLE EVENTO -->
-      <div class="modal-overlay oculto" id="modalDetalleOverlay">
-        <div class="modal-evento">
-          <div class="modal-header">
-            <h2>Detalle del evento</h2>
-            <button class="modal-close" id="cerrarModalDetalle">&times;</button>
-          </div>
-
-          <div class="detalle-evento">
-            <p><strong>Título:</strong> <span id="detalleTituloEvento"></span></p>
-            <p><strong>Fecha:</strong> <span id="detalleFechaEvento"></span></p>
-            <p><strong>Hora:</strong> <span id="detalleHoraEvento"></span></p>
-          </div>
-
-          <div class="modal-actions">
-      
-  <button type="button" class="btn-secondary" id="cancelarModalDetalle">
-    Cerrar
-  </button>
-
-  <button type="button" class="btn-warning" id="btnEditarEvento">
-    Editar
-  </button>
-
-  <button type="button" class="btn-danger" id="btnEliminarEvento">
-    Eliminar
-  </button>
-</div>
-          </div>
-        </div>
-      </div>
-      <!-- MODAL CONFIRMAR ELIMINACIÓN -->
-<div class="modal-overlay oculto" id="modalConfirmarEliminarOverlay">
-  <div class="modal-evento modal-confirmacion">
-    <div class="modal-header">
-      <h2>Eliminar evento</h2>
-      <button class="modal-close" id="cerrarModalConfirmarEliminar">&times;</button>
-    </div>
-
-    <div class="detalle-evento">
-      <p class="texto-confirmacion">
-        ¿Estás seguro de eliminar este evento?
-      </p>
-      <p class="texto-confirmacion-sub" id="textoEventoAEliminar"></p>
-      <p class="texto-confirmacion-warning">
-        Esta acción no se puede deshacer.
-      </p>
-    </div>
-
-    <div class="modal-actions">
-      <button type="button" class="btn-secondary" id="cancelarEliminarEvento">
-        Cancelar
-      </button>
-      <button type="button" class="btn-danger" id="confirmarEliminarEvento">
-        Sí, eliminar
-      </button>
-    </div>
-  </div>
-</div>
-    `;
-
-
-  inicializarCalendario();
-  inicializarModalEvento();
-  inicializarModalDetalleEvento();
-  inicializarModalConfirmarEliminar();
-
-  const btnNuevaActividad = document.getElementById("btnNuevaActividad");
-
-  if (btnNuevaActividad) {
-    btnNuevaActividad.addEventListener("click", () => {
-      abrirModalEvento();
-    });
+  if (vista === "configuracion") {
+    await cargarVistaConfiguracion(contenedor);
   }
 }
 
-  if (vista === "reportes") {
-    contenedor.innerHTML = `
-      <div class="vista-header">
-        <h1>Reportes</h1>
-        <p>Indicadores comerciales del CRM</p>
-      </div>
+function crearTexto(tag, texto, className = "") {
+  const elemento = document.createElement(tag);
+  elemento.textContent = texto || "";
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span>Total ventas</span>
-          <h2>$17.700</h2>
-        </div>
-        <div class="stat-card">
-          <span>Clientes activos</span>
-          <h2>50</h2>
-        </div>
-        <div class="stat-card">
-          <span>Leads nuevos</span>
-          <h2>30</h2>
-        </div>
-      </div>
-
-      <div class="panels">
-        <div class="panel">
-          <h3>Ventas por etapa</h3>
-          <canvas id="graficaBarras"></canvas>
-        </div>
-
-        <div class="panel">
-          <h3>Distribución de clientes</h3>
-          <canvas id="graficaPie"></canvas>
-        </div>
-      </div>
-    `;
-
-    setTimeout(() => {
-      const ctx1 = document.getElementById("graficaBarras");
-      const ctx2 = document.getElementById("graficaPie");
-
-      if (ctx1) {
-        new Chart(ctx1, {
-          type: "bar",
-          data: {
-            labels: ["Prospecto", "Propuesta", "Negociación", "Cerrado"],
-            datasets: [
-              {
-                label: "Ventas $",
-                data: [1200, 4500, 6000, 8000],
-                backgroundColor: "#3b82f6",
-                borderRadius: 8,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: true,
-              },
-            },
-          },
-        });
-      }
-
-      if (ctx2) {
-        new Chart(ctx2, {
-          type: "pie",
-          data: {
-            labels: ["Clientes", "Leads", "Inactivos"],
-            datasets: [
-              {
-                data: [50, 30, 20],
-                backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-          },
-        });
-      }
-    }, 100);
+  if (className) {
+    elemento.className = className;
   }
-if (vista === "configuracion") {
+
+  return elemento;
+}
+
+function mostrarEstadoVacio(contenedor, mensaje) {
+  contenedor.innerHTML = "";
+  contenedor.appendChild(crearTexto("p", mensaje, "empty-state"));
+}
+
+function etiquetaEtapa(etapa) {
+  const tag = document.createElement("span");
+  tag.className = `tag tag-${etapa === "ganada" ? "green" : etapa === "perdida" ? "red" : "blue"}`;
+  tag.textContent = etapasOportunidad[etapa] || etapa || "Prospecto";
+  return tag;
+}
+
+async function cargarVistaOportunidades(contenedor) {
   contenedor.innerHTML = `
-    <div class="vista-header">
-      <h1>Configuración</h1>
-      <p>Administra tu cuenta, preferencias y datos del sistema</p>
+    <div class="vista-header vista-header-flex">
+      <div>
+        <h1>Oportunidades</h1>
+        <p>Pipeline comercial conectado a la base de datos</p>
+      </div>
+      <button class="btn-primary" id="btnNuevaOportunidad">+ Nueva oportunidad</button>
     </div>
 
-    <div class="config-grid">
-
-      <div class="panel config-card">
-        <h3>Perfil de usuario</h3>
-
-        <div class="config-row">
-          <span>Usuario</span>
-          <strong>Admin</strong>
-        </div>
-        <div class="config-row">
-          <span>Email</span>
-          <strong>admin@crm.com</strong>
-        </div>
-        <div class="config-row">
-          <span>Rol</span>
-          <strong>Administrador</strong>
-        </div>
-
-        <div class="config-actions">
-          <button class="btn-primary">Editar perfil</button>
-          <button class="btn-secondary" id="btnCambiarPassword">Cambiar contraseña</button>
-        </div>
+    <section class="panel">
+      <div class="toolbar-panel">
+        <input type="search" id="buscarOportunidades" class="search-table" placeholder="Buscar oportunidad...">
+        <select id="filtroEtapa" class="input-inline">
+          <option value="">Todas las etapas</option>
+          <option value="prospecto">Prospecto</option>
+          <option value="propuesta">Propuesta</option>
+          <option value="negociacion">Negociación</option>
+          <option value="ganada">Ganada</option>
+          <option value="perdida">Perdida</option>
+        </select>
       </div>
+      <div class="cards-grid" id="listaOportunidades"></div>
+    </section>
 
-      <div class="panel config-card">
-        <h3>Preferencias</h3>
-
-        <div class="config-row">
-          <span>Idioma</span>
-          <strong>Español</strong>
-        </div>
-        <div class="config-row">
-          <span>Zona horaria</span>
-          <strong>América/Bogotá</strong>
-        </div>
-        <div class="config-row">
-          <span>Formato de fecha</span>
-          <strong>DD/MM/YYYY</strong>
+    <div class="modal-overlay oculto" id="modalOportunidadOverlay">
+      <div class="modal-evento">
+        <div class="modal-header">
+          <h2 id="tituloModalOportunidad">Nueva oportunidad</h2>
+          <button class="modal-close" id="cerrarModalOportunidad">&times;</button>
         </div>
 
-        <div class="config-actions">
-          <button class="btn-primary">Guardar preferencias</button>
-        </div>
+        <form id="formOportunidad" class="form-evento">
+          <label for="tituloOportunidad">Título</label>
+          <input type="text" id="tituloOportunidad" required>
+
+          <label for="contactoOportunidad">Contacto</label>
+          <select id="contactoOportunidad">
+            <option value="">Sin contacto asociado</option>
+          </select>
+
+          <label for="valorOportunidad">Valor</label>
+          <input type="number" id="valorOportunidad" min="0" step="1000" value="0">
+
+          <label for="etapaOportunidad">Etapa</label>
+          <select id="etapaOportunidad">
+            <option value="prospecto">Prospecto</option>
+            <option value="propuesta">Propuesta</option>
+            <option value="negociacion">Negociación</option>
+            <option value="ganada">Ganada</option>
+            <option value="perdida">Perdida</option>
+          </select>
+
+          <label for="fechaCierreOportunidad">Fecha estimada de cierre</label>
+          <input type="date" id="fechaCierreOportunidad">
+
+          <label for="notasOportunidad">Notas</label>
+          <input type="text" id="notasOportunidad">
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="cancelarModalOportunidad">Cancelar</button>
+            <button type="submit" class="btn-primary">Guardar</button>
+          </div>
+        </form>
       </div>
+    </div>
+  `;
 
-      <div class="panel config-card">
-        <h3>Notificaciones</h3>
+  inicializarOportunidades();
+  await cargarContactosSelect("contactoOportunidad");
+  await cargarOportunidades();
+}
 
-        <div class="config-check">
-          <label><input type="checkbox" checked> Recordatorios de eventos</label>
-        </div>
-        <div class="config-check">
-          <label><input type="checkbox" checked> Notificaciones por email</label>
-        </div>
-        <div class="config-check">
-          <label><input type="checkbox"> Avisos de nuevos clientes</label>
-        </div>
-        <div class="config-check">
-          <label><input type="checkbox" checked> Alertas de tareas pendientes</label>
-        </div>
+function inicializarOportunidades() {
+  const btnNueva = document.getElementById("btnNuevaOportunidad");
+  const overlay = document.getElementById("modalOportunidadOverlay");
+  const cerrar = document.getElementById("cerrarModalOportunidad");
+  const cancelar = document.getElementById("cancelarModalOportunidad");
+  const form = document.getElementById("formOportunidad");
+  const buscar = document.getElementById("buscarOportunidades");
+  const filtro = document.getElementById("filtroEtapa");
 
-        <div class="config-actions">
-          <button class="btn-primary">Guardar notificaciones</button>
-        </div>
+  btnNueva?.addEventListener("click", () => abrirModalOportunidad());
+  cerrar?.addEventListener("click", cerrarModalOportunidad);
+  cancelar?.addEventListener("click", cerrarModalOportunidad);
+  overlay?.addEventListener("click", (e) => {
+    if (e.target === overlay) cerrarModalOportunidad();
+  });
+
+  form?.addEventListener("submit", guardarOportunidad);
+
+  let timeoutBusqueda;
+  buscar?.addEventListener("input", () => {
+    clearTimeout(timeoutBusqueda);
+    timeoutBusqueda = setTimeout(cargarOportunidades, 300);
+  });
+
+  filtro?.addEventListener("change", cargarOportunidades);
+}
+
+async function cargarContactosSelect(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  try {
+    const contactos = await apiFetch("/contactos");
+
+    contactos.forEach((contacto) => {
+      const option = document.createElement("option");
+      option.value = contacto.id;
+      option.textContent = `${contacto.nombre}${contacto.empresa ? ` - ${contacto.empresa}` : ""}`;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No se pudieron cargar contactos";
+    select.appendChild(option);
+  }
+}
+
+async function cargarOportunidades() {
+  const lista = document.getElementById("listaOportunidades");
+  const buscar = document.getElementById("buscarOportunidades")?.value.trim() || "";
+  const etapa = document.getElementById("filtroEtapa")?.value || "";
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  try {
+    const params = new URLSearchParams();
+    if (buscar) params.set("search", buscar);
+    if (etapa) params.set("etapa", etapa);
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const oportunidades = await apiFetch(`/oportunidades${query}`);
+
+    if (oportunidades.length === 0) {
+      mostrarEstadoVacio(lista, "No hay oportunidades registradas.");
+      return;
+    }
+
+    oportunidades.forEach((oportunidad) => {
+      lista.appendChild(crearCardOportunidad(oportunidad));
+    });
+  } catch (error) {
+    mostrarEstadoVacio(lista, error.message || "Error al cargar oportunidades.");
+  }
+}
+
+function crearCardOportunidad(oportunidad) {
+  const card = document.createElement("article");
+  card.className = "info-card";
+
+  card.appendChild(etiquetaEtapa(oportunidad.etapa));
+  card.appendChild(crearTexto("h3", oportunidad.titulo));
+  card.appendChild(crearTexto("p", oportunidad.contacto_nombre || "Sin contacto asociado"));
+  card.appendChild(crearTexto("strong", formatCurrency(oportunidad.valor)));
+
+  const meta = crearTexto(
+    "p",
+    oportunidad.fecha_cierre ? `Cierre estimado: ${oportunidad.fecha_cierre}` : "Sin fecha estimada",
+    "card-meta"
+  );
+  card.appendChild(meta);
+
+  const acciones = document.createElement("div");
+  acciones.className = "action-buttons action-buttons-card";
+
+  const editar = document.createElement("button");
+  editar.type = "button";
+  editar.className = "btn-action btn-edit";
+  editar.textContent = "Editar";
+  editar.addEventListener("click", () => abrirModalOportunidad(oportunidad));
+
+  const eliminar = document.createElement("button");
+  eliminar.type = "button";
+  eliminar.className = "btn-action btn-delete";
+  eliminar.textContent = "Eliminar";
+  eliminar.addEventListener("click", async () => {
+    if (!window.confirm("¿Eliminar esta oportunidad?")) return;
+
+    await apiFetch(`/oportunidades/${oportunidad.id}`, { method: "DELETE" });
+    await cargarOportunidades();
+  });
+
+  acciones.appendChild(editar);
+  acciones.appendChild(eliminar);
+  card.appendChild(acciones);
+
+  return card;
+}
+
+function abrirModalOportunidad(oportunidad = null) {
+  const overlay = document.getElementById("modalOportunidadOverlay");
+  const tituloModal = document.getElementById("tituloModalOportunidad");
+
+  oportunidadEditandoId = oportunidad?.id || null;
+
+  if (tituloModal) {
+    tituloModal.textContent = oportunidad ? "Editar oportunidad" : "Nueva oportunidad";
+  }
+
+  document.getElementById("tituloOportunidad").value = oportunidad?.titulo || "";
+  document.getElementById("contactoOportunidad").value = oportunidad?.contacto_id || "";
+  document.getElementById("valorOportunidad").value = oportunidad?.valor || 0;
+  document.getElementById("etapaOportunidad").value = oportunidad?.etapa || "prospecto";
+  document.getElementById("fechaCierreOportunidad").value = oportunidad?.fecha_cierre || "";
+  document.getElementById("notasOportunidad").value = oportunidad?.notas || "";
+
+  overlay?.classList.remove("oculto");
+}
+
+function cerrarModalOportunidad() {
+  oportunidadEditandoId = null;
+  document.getElementById("formOportunidad")?.reset();
+  document.getElementById("modalOportunidadOverlay")?.classList.add("oculto");
+}
+
+async function guardarOportunidad(e) {
+  e.preventDefault();
+
+  const payload = {
+    titulo: document.getElementById("tituloOportunidad").value.trim(),
+    contacto_id: document.getElementById("contactoOportunidad").value || null,
+    valor: document.getElementById("valorOportunidad").value || 0,
+    etapa: document.getElementById("etapaOportunidad").value,
+    fecha_cierre: document.getElementById("fechaCierreOportunidad").value || null,
+    notas: document.getElementById("notasOportunidad").value.trim(),
+  };
+
+  const path = oportunidadEditandoId
+    ? `/oportunidades/${oportunidadEditandoId}`
+    : "/oportunidades";
+  const method = oportunidadEditandoId ? "PUT" : "POST";
+
+  await apiFetch(path, {
+    method,
+    body: JSON.stringify(payload),
+  });
+
+  cerrarModalOportunidad();
+  await cargarOportunidades();
+}
+
+function cargarVistaCalendario(contenedor) {
+  contenedor.innerHTML = `
+    <div class="vista-header vista-header-flex">
+      <div>
+        <h1>Calendario</h1>
+        <p>Actividades guardadas en la base de datos</p>
       </div>
-
-      <div class="panel config-card">
-        <h3>Sistema</h3>
-
-        <div class="config-row">
-          <span>Versión CRM</span>
-          <strong>1.0.0</strong>
-        </div>
-        <div class="config-row">
-          <span>Base de datos</span>
-          <strong>LocalStorage</strong>
-        </div>
-        <div class="config-row">
-          <span>Eventos guardados</span>
-          <strong>${obtenerEventosLocalStorage().length}</strong>
-        </div>
-
-        <div class="config-actions">
-          <button class="btn-secondary">Exportar datos</button>
-        </div>
-      </div>
-
+      <button class="btn-primary" id="btnNuevaActividad">+ Nueva actividad</button>
     </div>
 
-    <!-- Modal cambiar contraseña -->
-    <div id="modalCambiarPassword" class="modal-password oculto">
-      <div class="modal-password-content">
-        <h3>Cambiar contraseña</h3>
+    <div class="panel panel-calendario">
+      <div id="calendar"></div>
+    </div>
 
-        <input 
-          type="password" 
-          id="currentPassword" 
-          placeholder="Contraseña actual"
-          class="input-password"
-        />
+    <div class="modal-overlay oculto" id="modalEventoOverlay">
+      <div class="modal-evento">
+        <div class="modal-header">
+          <h2 id="tituloModalEvento">Nueva actividad</h2>
+          <button class="modal-close" id="cerrarModalEvento">&times;</button>
+        </div>
 
-        <input 
-          type="password" 
-          id="newPassword" 
-          placeholder="Nueva contraseña"
-          class="input-password"
-        />
+        <form id="formEvento" class="form-evento">
+          <label for="tituloEvento">Título</label>
+          <input type="text" id="tituloEvento" required>
 
-        <input 
-          type="password" 
-          id="confirmPassword" 
-          placeholder="Confirmar nueva contraseña"
-          class="input-password"
-        />
+          <label for="tipoEvento">Tipo</label>
+          <select id="tipoEvento">
+            <option value="tarea">Tarea</option>
+            <option value="llamada">Llamada</option>
+            <option value="reunion">Reunión</option>
+            <option value="correo">Correo</option>
+          </select>
 
-        <p id="passwordMessage" class="password-message"></p>
+          <label for="fechaEvento">Fecha</label>
+          <input type="date" id="fechaEvento" required>
 
-        <div class="modal-password-actions">
-          <button class="btn-primary" id="guardarNuevaPassword">Guardar</button>
-          <button class="btn-secondary" id="cerrarModalPassword">Cancelar</button>
+          <label for="horaEvento">Hora</label>
+          <input type="time" id="horaEvento">
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="cancelarModalEvento">Cancelar</button>
+            <button type="submit" class="btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-overlay oculto" id="modalDetalleOverlay">
+      <div class="modal-evento">
+        <div class="modal-header">
+          <h2>Detalle de actividad</h2>
+          <button class="modal-close" id="cerrarModalDetalle">&times;</button>
+        </div>
+        <div class="detalle-evento">
+          <p><strong>Título:</strong> <span id="detalleTituloEvento"></span></p>
+          <p><strong>Fecha:</strong> <span id="detalleFechaEvento"></span></p>
+          <p><strong>Hora:</strong> <span id="detalleHoraEvento"></span></p>
+          <p><strong>Tipo:</strong> <span id="detalleTipoEvento"></span></p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="cancelarModalDetalle">Cerrar</button>
+          <button type="button" class="btn-warning" id="btnEditarEvento">Editar</button>
+          <button type="button" class="btn-danger" id="btnEliminarEvento">Eliminar</button>
         </div>
       </div>
     </div>
   `;
 
-  inicializarCambioPassword();
-}
+  inicializarCalendario();
+  inicializarModalEvento();
+  inicializarModalDetalleEvento();
 
-function inicializarCambioPassword() {
-  console.log("inicializarCambioPassword SI se ejecutó");
-
-  const btnCambiarPassword = document.getElementById("btnCambiarPassword");
-  const modal = document.getElementById("modalCambiarPassword");
-  const btnCerrarModal = document.getElementById("cerrarModalPassword");
-  const btnGuardar = document.getElementById("guardarNuevaPassword");
-  const passwordMessage = document.getElementById("passwordMessage");
-
-  const currentPasswordInput = document.getElementById("currentPassword");
-  const newPasswordInput = document.getElementById("newPassword");
-  const confirmPasswordInput = document.getElementById("confirmPassword");
-
-  console.log("btnCambiarPassword:", btnCambiarPassword);
-  console.log("modal:", modal);
-  console.log("btnCerrarModal:", btnCerrarModal);
-  console.log("btnGuardar:", btnGuardar);
-
-  if (!btnCambiarPassword || !modal) {
-    console.log("No encontró botón o modal");
-    return;
-  }
-
-  btnCambiarPassword.addEventListener("click", () => {
-    console.log("Click en cambiar contraseña");
-    modal.classList.remove("oculto");
-    passwordMessage.textContent = "";
+  document.getElementById("btnNuevaActividad")?.addEventListener("click", () => {
+    abrirModalEvento();
   });
-
-  btnCerrarModal.addEventListener("click", () => {
-    modal.classList.add("oculto");
-    limpiarFormularioPassword();
-  });
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      modal.classList.add("oculto");
-      limpiarFormularioPassword();
-    }
-  });
-
-  btnGuardar.addEventListener("click", async () => {
-    const currentPassword = currentPasswordInput.value.trim();
-    const newPassword = newPasswordInput.value.trim();
-    const confirmPassword = confirmPasswordInput.value.trim();
-
-    const token = localStorage.getItem("token");
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      passwordMessage.textContent = "Todos los campos son obligatorios";
-      passwordMessage.style.color = "red";
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      passwordMessage.textContent = "Las nuevas contraseñas no coinciden";
-      passwordMessage.style.color = "red";
-      return;
-    }
-
-    if (!token) {
-      passwordMessage.textContent = "No se encontró sesión activa. Inicia sesión nuevamente.";
-      passwordMessage.style.color = "red";
-      return;
-    }
-
-    try {
-      const response = await fetch("http://localhost:3000/api/auth/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          confirmPassword
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        passwordMessage.textContent = data.message || "Error al cambiar contraseña";
-        passwordMessage.style.color = "red";
-        return;
-      }
-
-      passwordMessage.textContent = data.message || "Contraseña actualizada correctamente";
-      passwordMessage.style.color = "green";
-
-      currentPasswordInput.value = "";
-      newPasswordInput.value = "";
-      confirmPasswordInput.value = "";
-
-      passwordMessage.textContent = "Contraseña actualizada correctamente";
-passwordMessage.style.color = "green";
-
-currentPasswordInput.value = "";
-newPasswordInput.value = "";
-confirmPasswordInput.value = "";
-
-// cerrar después de 3 segundos
-setTimeout(() => {
-  modal.classList.add("oculto");
-  limpiarFormularioPassword();
-}, 3000);
-
-    } catch (error) {
-      passwordMessage.textContent = "Error de conexión con el servidor";
-      passwordMessage.style.color = "red";
-    }
-  });
-
-  function limpiarFormularioPassword() {
-    currentPasswordInput.value = "";
-    newPasswordInput.value = "";
-    confirmPasswordInput.value = "";
-    passwordMessage.textContent = "";
-  }
-}
-  if (vista === "dashboard") {
-    location.reload();
-  }
 }
 
-/* =============================
-   FULLCALENDAR + LOCALSTORAGE
-============================= */
+function mapearActividadEvento(actividad) {
+  const hora = actividad.hora || "00:00";
 
-function obtenerEventosLocalStorage() {
-  const eventos = localStorage.getItem("eventosCalendario");
-  return eventos ? JSON.parse(eventos) : [];
+  return {
+    id: String(actividad.id),
+    title: actividad.titulo,
+    start: `${actividad.fecha}T${hora}:00`,
+    extendedProps: {
+      actividad,
+    },
+  };
 }
 
-function guardarEventosLocalStorage(eventos) {
-  localStorage.setItem("eventosCalendario", JSON.stringify(eventos));
-}
-
-function inicializarCalendario() {
+async function inicializarCalendario() {
   const calendarEl = document.getElementById("calendar");
   if (!calendarEl) return;
 
-  const eventosGuardados = obtenerEventosLocalStorage();
+  let eventos = [];
+
+  try {
+    const actividades = await apiFetch("/actividades");
+    eventos = actividades.map(mapearActividadEvento);
+  } catch (error) {
+    calendarEl.textContent = "No se pudieron cargar las actividades.";
+  }
 
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
@@ -541,21 +447,21 @@ function inicializarCalendario() {
     headerToolbar: {
       left: "prev,next today",
       center: "title",
-      right: "dayGridMonth,timeGridWeek,timeGridDay"
+      right: "dayGridMonth,timeGridWeek,timeGridDay",
     },
     buttonText: {
       today: "Hoy",
       month: "Mes",
       week: "Semana",
-      day: "Día"
+      day: "Día",
     },
-    events: eventosGuardados,
-   dateClick: function(info) {
-  abrirModalEvento(info.dateStr);
-},
-  eventClick: function(info) {
-  abrirModalDetalleEvento(info.event);
-}
+    events: eventos,
+    dateClick: function (info) {
+      abrirModalEvento(info.dateStr);
+    },
+    eventClick: function (info) {
+      abrirModalDetalleEvento(info.event);
+    },
   });
 
   calendar.render();
@@ -568,316 +474,415 @@ function inicializarModalEvento() {
   const btnCancelar = document.getElementById("cancelarModalEvento");
   const formEvento = document.getElementById("formEvento");
 
-  if (!overlay || !formEvento) return;
-
-  if (btnCerrar) {
-    btnCerrar.addEventListener("click", cerrarModalEvento);
-  }
-
-  if (btnCancelar) {
-    btnCancelar.addEventListener("click", cerrarModalEvento);
-  }
-
-  overlay.addEventListener("click", function (e) {
-    if (e.target === overlay) {
-      cerrarModalEvento();
-    }
+  btnCerrar?.addEventListener("click", cerrarModalEvento);
+  btnCancelar?.addEventListener("click", cerrarModalEvento);
+  overlay?.addEventListener("click", function (e) {
+    if (e.target === overlay) cerrarModalEvento();
   });
 
-  formEvento.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const titulo = document.getElementById("tituloEvento").value.trim();
-    const fecha = document.getElementById("fechaEvento").value;
-    const hora = document.getElementById("horaEvento").value;
-
-    if (!titulo || !fecha || !hora) return;
-
-    const nuevoEvento = {
-      id: Date.now().toString(),
-      title: titulo,
-      start: `${fecha}T${hora}:00`
-    };
-
-    const eventos = obtenerEventosLocalStorage();
-    eventos.push(nuevoEvento);
-    guardarEventosLocalStorage(eventos);
-
-    if (window.crmCalendar) {
-      window.crmCalendar.addEvent(nuevoEvento);
-    }
-
-    cerrarModalEvento();
-  });
+  formEvento?.addEventListener("submit", guardarActividad);
 }
 
-function abrirModalEvento(fechaSeleccionada = "") {
+function abrirModalEvento(fechaSeleccionada = "", evento = null) {
   const overlay = document.getElementById("modalEventoOverlay");
-  const tituloInput = document.getElementById("tituloEvento");
-  const fechaInput = document.getElementById("fechaEvento");
-  const horaInput = document.getElementById("horaEvento");
+  const tituloModal = document.getElementById("tituloModalEvento");
+  const actividad = evento?.extendedProps?.actividad || null;
 
-  if (!overlay) return;
+  window.eventoEditando = evento;
 
-  overlay.classList.remove("oculto");
+  if (tituloModal) {
+    tituloModal.textContent = evento ? "Editar actividad" : "Nueva actividad";
+  }
 
-  if (tituloInput) tituloInput.value = "";
-  if (fechaInput) fechaInput.value = fechaSeleccionada || "";
-  if (horaInput) horaInput.value = "10:00";
+  document.getElementById("tituloEvento").value = actividad?.titulo || "";
+  document.getElementById("tipoEvento").value = actividad?.tipo || "tarea";
+  document.getElementById("fechaEvento").value = actividad?.fecha || fechaSeleccionada || "";
+  document.getElementById("horaEvento").value = actividad?.hora || "10:00";
 
-  if (tituloInput) tituloInput.focus();
+  overlay?.classList.remove("oculto");
+  document.getElementById("tituloEvento")?.focus();
 }
 
-function eliminarEvento(evento) {
-  const eventos = obtenerEventosLocalStorage();
-  const actualizados = eventos.filter(e => e.id !== evento.id);
+async function guardarActividad(e) {
+  e.preventDefault();
 
-  guardarEventosLocalStorage(actualizados);
-  evento.remove();
+  const payload = {
+    titulo: document.getElementById("tituloEvento").value.trim(),
+    tipo: document.getElementById("tipoEvento").value,
+    fecha: document.getElementById("fechaEvento").value,
+    hora: document.getElementById("horaEvento").value || null,
+    estado: "pendiente",
+  };
+
+  const eventoEditando = window.eventoEditando;
+  const path = eventoEditando ? `/actividades/${eventoEditando.id}` : "/actividades";
+  const method = eventoEditando ? "PUT" : "POST";
+
+  const actividad = await apiFetch(path, {
+    method,
+    body: JSON.stringify(payload),
+  });
+
+  if (eventoEditando) {
+    eventoEditando.remove();
+  }
+
+  window.crmCalendar?.addEvent(mapearActividadEvento(actividad));
+  cerrarModalEvento();
 }
 
 function cerrarModalEvento() {
-  const overlay = document.getElementById("modalEventoOverlay");
-  const formEvento = document.getElementById("formEvento");
-
-  if (overlay) {
-    overlay.classList.add("oculto");
-  }
-
-  if (formEvento) {
-    formEvento.reset();
-  }
+  document.getElementById("modalEventoOverlay")?.classList.add("oculto");
+  document.getElementById("formEvento")?.reset();
+  window.eventoEditando = null;
 }
+
 function inicializarModalDetalleEvento() {
   const overlay = document.getElementById("modalDetalleOverlay");
-  const btnCerrar = document.getElementById("cerrarModalDetalle");
-  const btnCancelar = document.getElementById("cancelarModalDetalle");
-  const btnEliminar = document.getElementById("btnEliminarEvento");
-  const btnEditar = document.getElementById("btnEditarEvento");
 
-  if (!overlay) return;
-
-  if (btnCerrar) {
-    btnCerrar.addEventListener("click", cerrarModalDetalleEvento);
-  }
-
-  if (btnCancelar) {
-    btnCancelar.addEventListener("click", cerrarModalDetalleEvento);
-  }
-
-  overlay.addEventListener("click", function (e) {
-    if (e.target === overlay) {
-      cerrarModalDetalleEvento();
-    }
+  document.getElementById("cerrarModalDetalle")?.addEventListener("click", cerrarModalDetalleEvento);
+  document.getElementById("cancelarModalDetalle")?.addEventListener("click", cerrarModalDetalleEvento);
+  overlay?.addEventListener("click", function (e) {
+    if (e.target === overlay) cerrarModalDetalleEvento();
   });
 
-  if (btnEliminar) {
-    btnEliminar.addEventListener("click", function () {
-      if (!window.eventoSeleccionado) return;
+  document.getElementById("btnEliminarEvento")?.addEventListener("click", async function () {
+    if (!window.eventoSeleccionado) return;
+    if (!window.confirm("¿Eliminar esta actividad?")) return;
 
-      abrirModalConfirmarEliminar(window.eventoSeleccionado);
+    await apiFetch(`/actividades/${window.eventoSeleccionado.id}`, {
+      method: "DELETE",
     });
-  }
 
-  if (btnEditar) {
-    btnEditar.addEventListener("click", function () {
-      if (!window.eventoSeleccionado) return;
+    window.eventoSeleccionado.remove();
+    cerrarModalDetalleEvento();
+  });
 
-      const evento = window.eventoSeleccionado;
+  document.getElementById("btnEditarEvento")?.addEventListener("click", function () {
+    if (!window.eventoSeleccionado) return;
 
-      cerrarModalDetalleEvento();
-      abrirModalEvento(evento.startStr ? evento.startStr.split("T")[0] : "");
-
-      document.getElementById("tituloEvento").value = evento.title;
-
-      const hora = evento.start
-        ? evento.start.toTimeString().slice(0, 5)
-        : "10:00";
-
-      document.getElementById("horaEvento").value = hora;
-
-      window.eventoEditando = evento;
-    });
-  }
+    const evento = window.eventoSeleccionado;
+    cerrarModalDetalleEvento();
+    abrirModalEvento("", evento);
+  });
 }
 
 function abrirModalDetalleEvento(evento) {
   const overlay = document.getElementById("modalDetalleOverlay");
-  const titulo = document.getElementById("detalleTituloEvento");
-  const fecha = document.getElementById("detalleFechaEvento");
-  const hora = document.getElementById("detalleHoraEvento");
+  const actividad = evento.extendedProps?.actividad || {};
 
-  if (!overlay || !evento) return;
-
-  const fechaEvento = evento.start
-    ? evento.start.toLocaleDateString("es-CO")
-    : "Sin fecha";
-
-  const horaEvento = evento.start
-    ? evento.start.toLocaleTimeString("es-CO", {
-        hour: "2-digit",
-        minute: "2-digit"
-      })
-    : "Sin hora";
-
-  if (titulo) titulo.textContent = evento.title;
-  if (fecha) fecha.textContent = fechaEvento;
-  if (hora) hora.textContent = horaEvento;
+  document.getElementById("detalleTituloEvento").textContent = actividad.titulo || evento.title;
+  document.getElementById("detalleFechaEvento").textContent = actividad.fecha || "Sin fecha";
+  document.getElementById("detalleHoraEvento").textContent = actividad.hora || "Sin hora";
+  document.getElementById("detalleTipoEvento").textContent = actividad.tipo || "Tarea";
 
   window.eventoSeleccionado = evento;
-  overlay.classList.remove("oculto");
+  overlay?.classList.remove("oculto");
 }
 
 function cerrarModalDetalleEvento() {
-  const overlay = document.getElementById("modalDetalleOverlay");
-
-  if (overlay) {
-    overlay.classList.add("oculto");
-  }
-
+  document.getElementById("modalDetalleOverlay")?.classList.add("oculto");
   window.eventoSeleccionado = null;
 }
-function inicializarModalConfirmarEliminar() {
-  const overlay = document.getElementById("modalConfirmarEliminarOverlay");
-  const btnCerrar = document.getElementById("cerrarModalConfirmarEliminar");
-  const btnCancelar = document.getElementById("cancelarEliminarEvento");
-  const btnConfirmar = document.getElementById("confirmarEliminarEvento");
 
-  if (!overlay) return;
+async function cargarVistaReportes(contenedor) {
+  contenedor.innerHTML = `
+    <div class="vista-header">
+      <h1>Reportes</h1>
+      <p>Indicadores comerciales calculados desde la base de datos</p>
+    </div>
 
-  if (btnCerrar) {
-    btnCerrar.addEventListener("click", cerrarModalConfirmarEliminar);
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span>Total ventas ganadas</span>
+        <h2 id="reporteTotalVentas">$0</h2>
+      </div>
+      <div class="stat-card">
+        <span>Clientes activos</span>
+        <h2 id="reporteClientes">0</h2>
+      </div>
+      <div class="stat-card">
+        <span>Leads nuevos</span>
+        <h2 id="reporteLeads">0</h2>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h3>Ventas por etapa</h3>
+        <canvas id="graficaBarras"></canvas>
+      </div>
+
+      <div class="panel">
+        <h3>Contactos por estado</h3>
+        <canvas id="graficaPie"></canvas>
+      </div>
+    </div>
+  `;
+
+  try {
+    const data = await apiFetch("/dashboard/reportes");
+
+    document.getElementById("reporteTotalVentas").textContent = formatCurrency(data.indicadores.ventas);
+    document.getElementById("reporteClientes").textContent = data.indicadores.clientes;
+    document.getElementById("reporteLeads").textContent = data.indicadores.leads;
+
+    renderGraficasReportes(data);
+  } catch (error) {
+    contenedor.appendChild(crearTexto("p", error.message || "Error al cargar reportes.", "empty-state"));
+  }
+}
+
+function renderGraficasReportes(data) {
+  const ctx1 = document.getElementById("graficaBarras");
+  const ctx2 = document.getElementById("graficaPie");
+
+  graficaBarrasInstance?.destroy();
+  graficaPieInstance?.destroy();
+
+  if (ctx1) {
+    graficaBarrasInstance = new Chart(ctx1, {
+      type: "bar",
+      data: {
+        labels: data.ventasPorEtapa.map((item) => etapasOportunidad[item.etapa] || item.etapa),
+        datasets: [
+          {
+            label: "Valor",
+            data: data.ventasPorEtapa.map((item) => item.total),
+            backgroundColor: "#2563eb",
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+        },
+      },
+    });
   }
 
-  if (btnCancelar) {
-    btnCancelar.addEventListener("click", cerrarModalConfirmarEliminar);
-  }
-
-  overlay.addEventListener("click", function (e) {
-    if (e.target === overlay) {
-      cerrarModalConfirmarEliminar();
-    }
-  });
-
-  if (btnConfirmar) {
-    btnConfirmar.addEventListener("click", function () {
-      if (!window.eventoAEliminar) return;
-
-      eliminarEvento(window.eventoAEliminar);
-      cerrarModalConfirmarEliminar();
-      cerrarModalDetalleEvento();
+  if (ctx2) {
+    graficaPieInstance = new Chart(ctx2, {
+      type: "pie",
+      data: {
+        labels: data.clientesPorEstado.map((item) => estadosContacto[item.estado] || item.estado),
+        datasets: [
+          {
+            data: data.clientesPorEstado.map((item) => item.total),
+            backgroundColor: ["#10b981", "#f59e0b", "#64748b"],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+      },
     });
   }
 }
 
-function abrirModalConfirmarEliminar(evento) {
-  const overlay = document.getElementById("modalConfirmarEliminarOverlay");
-  const textoEvento = document.getElementById("textoEventoAEliminar");
-
-  if (!overlay || !evento) return;
-
-  window.eventoAEliminar = evento;
-
-  if (textoEvento) {
-    textoEvento.textContent = `"${evento.title}"`;
-  }
-
-  overlay.classList.remove("oculto");
-}
-
-function cerrarModalConfirmarEliminar() {
-  const overlay = document.getElementById("modalConfirmarEliminarOverlay");
-
-  if (overlay) {
-    overlay.classList.add("oculto");
-  }
-
-  window.eventoAEliminar = null;
-}
-/* =============================
-   RESUMEN DINÁMICO DASHBOARD
-============================= */
-
-async function cargarResumenDashboard() {
-  const totalContactos = document.getElementById("totalContactosDashboard");
-
-  if (!totalContactos) return;
+async function cargarVistaConfiguracion(contenedor) {
+  let usuario = {};
+  let resumen = { totales: { actividades: 0 } };
 
   try {
-    const response = await fetch("http://localhost:3000/api/contactos");
-
-    if (!response.ok) {
-      throw new Error("No se pudo obtener la lista de contactos");
-    }
-
-    const contactos = await response.json();
-
-    totalContactos.textContent = contactos.length;
+    [usuario, resumen] = await Promise.all([
+      apiFetch("/auth/me"),
+      apiFetch("/dashboard/resumen"),
+    ]);
   } catch (error) {
-    console.error("Error al cargar resumen del dashboard:", error);
-    totalContactos.textContent = "0";
+    usuario = JSON.parse(localStorage.getItem("user") || "{}");
   }
+
+  contenedor.innerHTML = `
+    <div class="vista-header">
+      <h1>Configuración</h1>
+      <p>Perfil, preferencias y estado general del sistema</p>
+    </div>
+
+    <div class="config-grid">
+      <div class="panel config-card">
+        <h3>Perfil de usuario</h3>
+        <div class="config-row">
+          <span>Usuario</span>
+          <strong>${escapeHtml(usuario.nombre || "Usuario")}</strong>
+        </div>
+        <div class="config-row">
+          <span>Email</span>
+          <strong>${escapeHtml(usuario.email || "Sin email")}</strong>
+        </div>
+        <div class="config-row">
+          <span>Rol</span>
+          <strong>${escapeHtml(usuario.rol || "admin")}</strong>
+        </div>
+        <div class="config-actions">
+          <button class="btn-secondary" id="btnCambiarPassword">Cambiar contraseña</button>
+        </div>
+      </div>
+
+      <div class="panel config-card">
+        <h3>Preferencias</h3>
+        <div class="config-row">
+          <span>Idioma</span>
+          <strong>Español</strong>
+        </div>
+        <div class="config-row">
+          <span>Zona horaria</span>
+          <strong>América/Bogotá</strong>
+        </div>
+        <div class="config-row">
+          <span>Formato de fecha</span>
+          <strong>DD/MM/YYYY</strong>
+        </div>
+      </div>
+
+      <div class="panel config-card">
+        <h3>Sistema</h3>
+        <div class="config-row">
+          <span>Versión CRM</span>
+          <strong>1.0.0 MVP</strong>
+        </div>
+        <div class="config-row">
+          <span>Base de datos</span>
+          <strong>MySQL</strong>
+        </div>
+        <div class="config-row">
+          <span>Actividades pendientes</span>
+          <strong>${resumen.totales?.actividades || 0}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalCambiarPassword" class="modal-password oculto">
+      <div class="modal-password-content">
+        <h3>Cambiar contraseña</h3>
+        <input type="password" id="currentPassword" placeholder="Contraseña actual" class="input-password">
+        <input type="password" id="newPassword" placeholder="Nueva contraseña" class="input-password">
+        <input type="password" id="confirmPassword" placeholder="Confirmar nueva contraseña" class="input-password">
+        <p id="passwordMessage" class="password-message"></p>
+        <div class="modal-password-actions">
+          <button class="btn-primary" id="guardarNuevaPassword">Guardar</button>
+          <button class="btn-secondary" id="cerrarModalPassword">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  inicializarCambioPassword();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  cargarResumenDashboard();
-  cargarContactosRecientesDashboard();
-});
-/* =============================
-   CONTACTOS RECIENTES DASHBOARD
-============================= */
+function inicializarCambioPassword() {
+  const btnCambiarPassword = document.getElementById("btnCambiarPassword");
+  const modal = document.getElementById("modalCambiarPassword");
+  const btnCerrarModal = document.getElementById("cerrarModalPassword");
+  const btnGuardar = document.getElementById("guardarNuevaPassword");
+  const passwordMessage = document.getElementById("passwordMessage");
 
-async function cargarContactosRecientesDashboard() {
-  const lista = document.getElementById("contactosRecientesDashboard");
+  const currentPasswordInput = document.getElementById("currentPassword");
+  const newPasswordInput = document.getElementById("newPassword");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
 
-  if (!lista) return;
+  btnCambiarPassword?.addEventListener("click", () => {
+    modal?.classList.remove("oculto");
+    passwordMessage.textContent = "";
+  });
 
-  try {
-    const response = await fetch("http://localhost:3000/api/contactos");
+  btnCerrarModal?.addEventListener("click", limpiarFormularioPassword);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) limpiarFormularioPassword();
+  });
 
-    if (!response.ok) {
-      throw new Error("No se pudieron cargar los contactos recientes");
-    }
+  btnGuardar?.addEventListener("click", async () => {
+    const currentPassword = currentPasswordInput.value.trim();
+    const newPassword = newPasswordInput.value.trim();
+    const confirmPassword = confirmPasswordInput.value.trim();
 
-    const contactos = await response.json();
-
-    lista.innerHTML = "";
-
-    if (contactos.length === 0) {
-      lista.innerHTML = `
-        <li class="list-empty">
-          No hay contactos registrados.
-        </li>
-      `;
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      passwordMessage.textContent = "Todos los campos son obligatorios";
+      passwordMessage.className = "password-message error";
       return;
     }
 
-    const contactosRecientes = [...contactos]
-      .sort((a, b) => b.id - a.id)
-      .slice(0, 3);
+    if (newPassword !== confirmPassword) {
+      passwordMessage.textContent = "Las nuevas contraseñas no coinciden";
+      passwordMessage.className = "password-message error";
+      return;
+    }
 
-    contactosRecientes.forEach((contacto) => {
-      const item = document.createElement("li");
-      item.classList.add("contacto-reciente-item");
+    try {
+      const data = await apiFetch("/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
 
-      const nombre = document.createElement("strong");
-      nombre.textContent = contacto.nombre || "Sin nombre";
+      passwordMessage.textContent = data.message || "Contraseña actualizada correctamente";
+      passwordMessage.className = "password-message success";
 
-      const detalle = document.createElement("span");
-      detalle.textContent = contacto.empresa || contacto.correo || "Sin información";
+      setTimeout(limpiarFormularioPassword, 1200);
+    } catch (error) {
+      passwordMessage.textContent = error.message || "Error al cambiar contraseña";
+      passwordMessage.className = "password-message error";
+    }
+  });
 
-      item.appendChild(nombre);
-      item.appendChild(detalle);
-
-      lista.appendChild(item);
-    });
-  } catch (error) {
-    console.error("Error al cargar contactos recientes:", error);
-
-    lista.innerHTML = `
-      <li class="list-empty">
-        Error al cargar contactos recientes.
-      </li>
-    `;
+  function limpiarFormularioPassword() {
+    currentPasswordInput.value = "";
+    newPasswordInput.value = "";
+    confirmPasswordInput.value = "";
+    passwordMessage.textContent = "";
+    modal?.classList.add("oculto");
   }
 }
+
+async function cargarDashboardInicial() {
+  const totalContactos = document.getElementById("totalContactosDashboard");
+  const totalOportunidades = document.getElementById("totalOportunidadesDashboard");
+  const ventas = document.getElementById("ventasDashboard");
+  const actividades = document.getElementById("actividadesDashboard");
+  const lista = document.getElementById("contactosRecientesDashboard");
+
+  if (!totalContactos && !lista) return;
+
+  try {
+    const data = await apiFetch("/dashboard/resumen");
+
+    if (totalContactos) totalContactos.textContent = data.totales.contactos;
+    if (totalOportunidades) totalOportunidades.textContent = data.totales.oportunidades;
+    if (ventas) ventas.textContent = formatCurrency(data.totales.ventas);
+    if (actividades) actividades.textContent = data.totales.actividades;
+
+    if (lista) {
+      lista.innerHTML = "";
+
+      if (data.contactosRecientes.length === 0) {
+        lista.appendChild(crearTexto("li", "No hay contactos registrados.", "list-empty"));
+        return;
+      }
+
+      data.contactosRecientes.forEach((contacto) => {
+        const item = document.createElement("li");
+        item.classList.add("contacto-reciente-item");
+        item.appendChild(crearTexto("strong", contacto.nombre || "Sin nombre"));
+        item.appendChild(crearTexto("span", contacto.empresa || contacto.correo || "Sin información"));
+        lista.appendChild(item);
+      });
+    }
+  } catch (error) {
+    if (totalContactos) totalContactos.textContent = "0";
+    if (totalOportunidades) totalOportunidades.textContent = "0";
+    if (ventas) ventas.textContent = "$0";
+    if (actividades) actividades.textContent = "0";
+
+    if (lista) {
+      lista.innerHTML = "";
+      lista.appendChild(crearTexto("li", "Error al cargar contactos recientes.", "list-empty"));
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", cargarDashboardInicial);

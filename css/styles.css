@@ -16,17 +16,26 @@
 
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
+  --primary-soft: #dbeafe;
   --green: #10b981;
+  --green-dark: #059669;
+  --green-soft: #dcfce7;
   --purple: #8b5cf6;
   --orange: #f59e0b;
+  --orange-dark: #d97706;
+  --orange-soft: #fef3c7;
   --red: #ef4444;
+  --red-dark: #dc2626;
+  --red-soft: #fee2e2;
+  --slate: #64748b;
 
   --sidebar-start: #1e3a8a;
   --sidebar-end: #172554;
 
   --shadow-sm: 0 4px 10px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 10px 25px rgba(15, 23, 42, 0.08);
-  --radius: 16px;
+  --radius: 10px;
+  --radius-sm: 8px;
 }
 
 body {
@@ -131,6 +140,7 @@ body {
 
 .search,
 .search-table,
+.input-inline,
 form input,
 form select {
   width: 100%;
@@ -149,6 +159,7 @@ form select {
 
 .search:focus,
 .search-table:focus,
+.input-inline:focus,
 form input:focus,
 form select:focus {
   border-color: var(--primary);
@@ -310,6 +321,11 @@ form select:focus {
   color: #7c3aed;
 }
 
+.tag-red {
+  background: var(--red-soft);
+  color: #b91c1c;
+}
+
 .badge.green {
   background: #10b981;
   color: white;
@@ -449,6 +465,23 @@ form select:focus {
 .search-table {
   margin-bottom: 15px;
   width: 250px;
+}
+
+.toolbar-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.toolbar-panel .search-table {
+  margin-bottom: 0;
+}
+
+.input-inline {
+  width: auto;
+  min-width: 190px;
 }
 
 .modern-table {
@@ -853,7 +886,18 @@ form button {
   font-size: 0.9rem;
 }
 
-.form-evento input:focus {
+.form-evento select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.form-evento input:focus,
+.form-evento select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
 }
@@ -893,7 +937,7 @@ form button {
 /* BOTONES MODAL */
 
 .btn-danger {
-  background: #ef4444;
+  background: var(--red);
   color: white;
   border: none;
   padding: 8px 14px;
@@ -904,13 +948,13 @@ form button {
 }
 
 .btn-danger:hover {
-  background: #dc2626;
+  background: var(--red-dark);
   transform: translateY(-1px);
 }
 
 
 .btn-warning {
-  background: #f59e0b;
+  background: var(--orange);
   color: white;
   border: none;
   padding: 8px 14px;
@@ -921,7 +965,7 @@ form button {
 }
 
 .btn-warning:hover {
-  background: #d97706;
+  background: var(--orange-dark);
   transform: translateY(-1px);
 }
 .modal-confirmacion {
@@ -1155,6 +1199,10 @@ form button {
   flex-wrap: wrap;
 }
 
+.action-buttons-card {
+  margin-top: 16px;
+}
+
 .btn-action {
   display: inline-flex;
   align-items: center;
@@ -1290,4 +1338,27 @@ form button {
   padding: 16px 0;
   color: #64748b;
   font-weight: 500;
+}
+
+.empty-state {
+  color: var(--text-soft);
+  font-weight: 600;
+  padding: 16px 0;
+}
+
+.card-meta {
+  margin-top: 8px;
+  font-size: 0.86rem;
+  color: var(--slate);
+}
+
+@media (max-width: 600px) {
+  .toolbar-panel {
+    align-items: stretch;
+  }
+
+  .toolbar-panel .search-table,
+  .input-inline {
+    width: 100%;
+  }
 }

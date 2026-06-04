@@ -1,4 +1,11 @@
 {
+  "name": "crm-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "serve": "python3 -m http.server 8080"
+  },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
     "@fullcalendar/daygrid": "^6.1.20",

@@ -14,13 +14,16 @@ function mostrarNotificacion(mensaje, tipo = "success") {
   const toast = document.createElement("div");
   toast.className = `toast toast-${tipo}`;
 
-  const icono = tipo === "success" ? "✅" : "❌";
+  const icono = document.createElement("span");
+  icono.className = "toast-icon";
+  icono.textContent = tipo === "success" ? "OK" : "!";
 
-  toast.innerHTML = `
-    <span class="toast-icon">${icono}</span>
-    <span class="toast-message">${mensaje}</span>
-  `;
+  const texto = document.createElement("span");
+  texto.className = "toast-message";
+  texto.textContent = mensaje;
 
+  toast.appendChild(icono);
+  toast.appendChild(texto);
   contenedor.appendChild(toast);
 
   setTimeout(() => {
@@ -46,17 +49,16 @@ if (idEditar) {
     titulo.innerText = "Editar Contacto";
   }
 
-  fetch(`http://localhost:3000/api/contactos/${idEditar}`)
-    .then((res) => res.json())
+  apiFetch(`/contactos/${idEditar}`)
     .then((contacto) => {
-      document.getElementById("nombre").value = contacto.nombre;
-      document.getElementById("telefono").value = contacto.telefono;
-      document.getElementById("correo").value = contacto.correo;
-      document.getElementById("empresa").value = contacto.empresa;
-      document.getElementById("notas").value = contacto.notas;
+      document.getElementById("nombre").value = contacto.nombre || "";
+      document.getElementById("telefono").value = contacto.telefono || "";
+      document.getElementById("correo").value = contacto.correo || "";
+      document.getElementById("empresa").value = contacto.empresa || "";
+      document.getElementById("estado").value = contacto.estado || "lead";
+      document.getElementById("notas").value = contacto.notas || "";
     })
-    .catch((error) => {
-      console.error("Error al cargar contacto:", error);
+    .catch(() => {
       mostrarNotificacion("Error al cargar el contacto", "error");
     });
 }
@@ -71,53 +73,34 @@ if (form) {
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const nombre = document.getElementById("nombre").value;
-    const telefono = document.getElementById("telefono").value;
-    const correo = document.getElementById("correo").value;
-    const empresa = document.getElementById("empresa").value;
-    const notas = document.getElementById("notas").value;
-
-    const nuevoContacto = {
-      nombre,
-      telefono,
-      correo,
-      empresa,
-      notas,
+    const contacto = {
+      nombre: document.getElementById("nombre").value.trim(),
+      telefono: document.getElementById("telefono").value.trim(),
+      correo: document.getElementById("correo").value.trim(),
+      empresa: document.getElementById("empresa").value.trim(),
+      estado: document.getElementById("estado").value,
+      notas: document.getElementById("notas").value.trim(),
     };
 
     try {
-      let url = "http://localhost:3000/api/contactos";
-      let metodo = "POST";
+      const path = idEditar ? `/contactos/${idEditar}` : "/contactos";
+      const method = idEditar ? "PUT" : "POST";
 
-      if (idEditar) {
-        url = `http://localhost:3000/api/contactos/${idEditar}`;
-        metodo = "PUT";
-      }
-
-      const response = await fetch(url, {
-        method: metodo,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(nuevoContacto),
+      await apiFetch(path, {
+        method,
+        body: JSON.stringify(contacto),
       });
 
-      if (response.ok) {
-        const mensaje = idEditar
-          ? "Contacto actualizado correctamente"
-          : "Contacto guardado correctamente";
+      mostrarNotificacion(
+        idEditar ? "Contacto actualizado correctamente" : "Contacto guardado correctamente",
+        "success"
+      );
 
-        mostrarNotificacion(mensaje, "success");
-
-        setTimeout(() => {
-          window.location.href = "contactos.html";
-        }, 1200);
-      } else {
-        mostrarNotificacion("Error al guardar el contacto", "error");
-      }
+      setTimeout(() => {
+        window.location.href = "contactos.html";
+      }, 900);
     } catch (error) {
-      console.error(error);
-      mostrarNotificacion("Error de conexión con el servidor", "error");
+      mostrarNotificacion(error.message || "Error al guardar el contacto", "error");
     }
   });
 }
@@ -127,63 +110,77 @@ if (form) {
 ============================= */
 
 const tabla = document.getElementById("tablaContactos");
+const buscadorContactos = document.getElementById("buscarContactos");
+
+function crearCelda(texto) {
+  const celda = document.createElement("td");
+  celda.textContent = texto || "-";
+  return celda;
+}
+
+function crearFilaContacto(contacto) {
+  const row = document.createElement("tr");
+
+  row.appendChild(crearCelda(contacto.nombre));
+  row.appendChild(crearCelda(contacto.telefono));
+  row.appendChild(crearCelda(contacto.correo));
+  row.appendChild(crearCelda(contacto.empresa));
+  row.appendChild(crearCelda(contacto.estado));
+  row.appendChild(crearCelda(contacto.notas));
+
+  const acciones = document.createElement("td");
+  const accionesWrapper = document.createElement("div");
+  accionesWrapper.className = "action-buttons";
+
+  const btnEditar = document.createElement("button");
+  btnEditar.className = "btn-action btn-edit";
+  btnEditar.type = "button";
+  btnEditar.textContent = "Editar";
+  btnEditar.addEventListener("click", () => editarContacto(contacto.id));
+
+  const btnEliminar = document.createElement("button");
+  btnEliminar.className = "btn-action btn-delete";
+  btnEliminar.type = "button";
+  btnEliminar.textContent = "Eliminar";
+  btnEliminar.dataset.id = contacto.id;
+
+  accionesWrapper.appendChild(btnEditar);
+  accionesWrapper.appendChild(btnEliminar);
+  acciones.appendChild(accionesWrapper);
+  row.appendChild(acciones);
+
+  return row;
+}
+
+async function obtenerContactos(search = "") {
+  if (!tabla) return;
+
+  try {
+    const query = search ? `?search=${encodeURIComponent(search)}` : "";
+    const contactos = await apiFetch(`/contactos${query}`);
+
+    tabla.innerHTML = "";
+
+    if (contactos.length === 0) {
+      const row = document.createElement("tr");
+      const celda = document.createElement("td");
+      celda.colSpan = 7;
+      celda.className = "empty-table";
+      celda.textContent = "No hay contactos registrados.";
+      row.appendChild(celda);
+      tabla.appendChild(row);
+      return;
+    }
+
+    contactos.forEach((contacto) => {
+      tabla.appendChild(crearFilaContacto(contacto));
+    });
+  } catch (error) {
+    mostrarNotificacion(error.message || "Error al cargar los contactos", "error");
+  }
+}
 
 if (tabla) {
-  const obtenerContactos = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/api/contactos");
-
-      const contactos = await response.json();
-
-      tabla.innerHTML = "";
-
-      if (contactos.length === 0) {
-        tabla.innerHTML = `
-          <tr>
-            <td colspan="6" class="empty-table">
-              No hay contactos registrados. Presiona "+ Nuevo"
-            </td>
-          </tr>
-        `;
-      } else {
-        contactos.forEach((contacto) => {
-          const row = document.createElement("tr");
-
-          row.innerHTML = `
-            <td>${contacto.nombre}</td>
-            <td>${contacto.telefono}</td>
-            <td>${contacto.correo}</td>
-            <td>${contacto.empresa}</td>
-            <td>${contacto.notas}</td>
-
-            <td>
-              <div class="action-buttons">
-                <button 
-                  class="btn-action btn-edit"
-                  onclick="editarContacto(${contacto.id})">
-                  <span>✏️</span>
-                  Editar
-                </button>
-
-                <button 
-                  class="btn-action btn-delete"
-                  data-id="${contacto.id}">
-                  <span>🗑️</span>
-                  Eliminar
-                </button>
-              </div>
-            </td>
-          `;
-
-          tabla.appendChild(row);
-        });
-      }
-    } catch (error) {
-      console.error("Error al obtener contactos:", error);
-      mostrarNotificacion("Error al cargar los contactos", "error");
-    }
-  };
-
   obtenerContactos();
 
   /* =============================
@@ -193,27 +190,20 @@ if (tabla) {
   tabla.addEventListener("click", async (e) => {
     const botonEliminar = e.target.closest(".btn-delete");
 
-    if (botonEliminar) {
-      const id = botonEliminar.getAttribute("data-id");
+    if (!botonEliminar) return;
 
-      try {
-        const response = await fetch(
-          `http://localhost:3000/api/contactos/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
+    const confirmar = window.confirm("¿Eliminar este contacto?");
+    if (!confirmar) return;
 
-        if (response.ok) {
-          mostrarNotificacion("Contacto eliminado correctamente", "success");
-          obtenerContactos();
-        } else {
-          mostrarNotificacion("Error al eliminar contacto", "error");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        mostrarNotificacion("Error de conexión con el servidor", "error");
-      }
+    try {
+      await apiFetch(`/contactos/${botonEliminar.dataset.id}`, {
+        method: "DELETE",
+      });
+
+      mostrarNotificacion("Contacto eliminado correctamente", "success");
+      obtenerContactos(buscadorContactos?.value.trim() || "");
+    } catch (error) {
+      mostrarNotificacion(error.message || "Error al eliminar contacto", "error");
     }
   });
 }
@@ -221,6 +211,18 @@ if (tabla) {
 /* =============================
    FUNCION EDITAR
 ============================= */
+
+if (buscadorContactos) {
+  let timeoutBusqueda;
+
+  buscadorContactos.addEventListener("input", () => {
+    clearTimeout(timeoutBusqueda);
+
+    timeoutBusqueda = setTimeout(() => {
+      obtenerContactos(buscadorContactos.value.trim());
+    }, 300);
+  });
+}
 
 function editarContacto(id) {
   window.location.href = `nuevo-contacto.html?id=${id}`;

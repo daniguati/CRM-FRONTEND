@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.15.1",
   "scripts": {
-    "serve": "python3 -m http.server 8080"
+    "serve": "node scripts/serve.js"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",

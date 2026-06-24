@@ -272,10 +272,22 @@ function crearCardOportunidad(oportunidad) {
   eliminar.className = "btn-action btn-delete";
   eliminar.textContent = "Eliminar";
   eliminar.addEventListener("click", async () => {
-    if (!window.confirm("¿Eliminar esta oportunidad?")) return;
+    const confirmar = await confirmarAccion({
+      titulo: "Eliminar oportunidad",
+      mensaje: "\u00bfQuieres eliminar esta oportunidad?",
+      detalle: oportunidad.titulo || "Oportunidad seleccionada",
+      confirmarTexto: "Eliminar",
+    });
 
-    await apiFetch(`/oportunidades/${oportunidad.id}`, { method: "DELETE" });
-    await cargarOportunidades();
+    if (!confirmar) return;
+
+    try {
+      await apiFetch(`/oportunidades/${oportunidad.id}`, { method: "DELETE" });
+      await cargarOportunidades();
+      mostrarNotificacion("Oportunidad eliminada correctamente", "success");
+    } catch (error) {
+      mostrarNotificacion(error.message || "Error al eliminar oportunidad", "error");
+    }
   });
 
   acciones.appendChild(editar);
@@ -327,14 +339,23 @@ async function guardarOportunidad(e) {
     ? `/oportunidades/${oportunidadEditandoId}`
     : "/oportunidades";
   const method = oportunidadEditandoId ? "PUT" : "POST";
+  const editando = Boolean(oportunidadEditandoId);
 
-  await apiFetch(path, {
-    method,
-    body: JSON.stringify(payload),
-  });
+  try {
+    await apiFetch(path, {
+      method,
+      body: JSON.stringify(payload),
+    });
 
-  cerrarModalOportunidad();
-  await cargarOportunidades();
+    cerrarModalOportunidad();
+    await cargarOportunidades();
+    mostrarNotificacion(
+      editando ? "Oportunidad actualizada correctamente" : "Oportunidad guardada correctamente",
+      "success"
+    );
+  } catch (error) {
+    mostrarNotificacion(error.message || "Error al guardar oportunidad", "error");
+  }
 }
 
 function cargarVistaCalendario(contenedor) {
@@ -548,14 +569,28 @@ function inicializarModalDetalleEvento() {
 
   document.getElementById("btnEliminarEvento")?.addEventListener("click", async function () {
     if (!window.eventoSeleccionado) return;
-    if (!window.confirm("¿Eliminar esta actividad?")) return;
 
-    await apiFetch(`/actividades/${window.eventoSeleccionado.id}`, {
-      method: "DELETE",
+    const actividad = window.eventoSeleccionado.extendedProps?.actividad || {};
+    const confirmar = await confirmarAccion({
+      titulo: "Eliminar actividad",
+      mensaje: "\u00bfQuieres eliminar esta actividad?",
+      detalle: actividad.titulo || window.eventoSeleccionado.title || "Actividad seleccionada",
+      confirmarTexto: "Eliminar",
     });
 
-    window.eventoSeleccionado.remove();
-    cerrarModalDetalleEvento();
+    if (!confirmar) return;
+
+    try {
+      await apiFetch(`/actividades/${window.eventoSeleccionado.id}`, {
+        method: "DELETE",
+      });
+
+      window.eventoSeleccionado.remove();
+      cerrarModalDetalleEvento();
+      mostrarNotificacion("Actividad eliminada correctamente", "success");
+    } catch (error) {
+      mostrarNotificacion(error.message || "Error al eliminar actividad", "error");
+    }
   });
 
   document.getElementById("btnEditarEvento")?.addEventListener("click", function () {

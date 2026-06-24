@@ -968,29 +968,103 @@ form button {
   background: var(--orange-dark);
   transform: translateY(-1px);
 }
+.modal-confirmacion-overlay {
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+  z-index: 10000;
+}
+
 .modal-confirmacion {
-  max-width: 420px;
+  max-width: 430px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  padding: 24px;
+}
+
+.modal-confirmacion-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.modal-confirmacion-header h2 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  color: #111827;
+}
+
+.modal-confirmacion-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 800;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+}
+
+.modal-confirmacion-icon-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.modal-confirmacion-icon-success {
+  background: #dcfce7;
+  color: #15803d;
 }
 
 .texto-confirmacion {
-  font-size: 1rem;
-  color: #111827;
-  font-weight: 600;
+  margin: 0;
+  font-size: 0.98rem;
+  color: #475569;
+  line-height: 1.5;
 }
 
 .texto-confirmacion-sub {
-  font-size: 1rem;
-  color: #1f2937;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px 12px;
+  font-size: 0.98rem;
+  color: #111827;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 700;
+  margin: 0 0 12px;
 }
 
 .texto-confirmacion-warning {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #b91c1c;
-  font-weight: 500;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-confirmacion-actions {
+  margin-top: 22px;
+}
+
+.modal-confirmacion-actions .btn-danger,
+.modal-confirmacion-actions .btn-primary,
+.modal-confirmacion-actions .btn-secondary {
+  min-width: 104px;
+}
+
+.modal-saliendo .modal-evento {
+  animation: cerrarModal 0.16s ease forwards;
+}
+
+@keyframes cerrarModal {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
 }
 .config-grid {
   display: grid;

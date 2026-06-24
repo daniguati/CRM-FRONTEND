@@ -1,41 +1,4 @@
 /* =============================
-   NOTIFICACIONES ELEGANTES
-============================= */
-
-function mostrarNotificacion(mensaje, tipo = "success") {
-  let contenedor = document.querySelector(".toast-container");
-
-  if (!contenedor) {
-    contenedor = document.createElement("div");
-    contenedor.className = "toast-container";
-    document.body.appendChild(contenedor);
-  }
-
-  const toast = document.createElement("div");
-  toast.className = `toast toast-${tipo}`;
-
-  const icono = document.createElement("span");
-  icono.className = "toast-icon";
-  icono.textContent = tipo === "success" ? "OK" : "!";
-
-  const texto = document.createElement("span");
-  texto.className = "toast-message";
-  texto.textContent = mensaje;
-
-  toast.appendChild(icono);
-  toast.appendChild(texto);
-  contenedor.appendChild(toast);
-
-  setTimeout(() => {
-    toast.classList.add("toast-hide");
-  }, 2500);
-
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
-}
-
-/* =============================
    DETECTAR EDICION
 ============================= */
 
@@ -192,7 +155,13 @@ if (tabla) {
 
     if (!botonEliminar) return;
 
-    const confirmar = window.confirm("¿Eliminar este contacto?");
+    const confirmar = await confirmarAccion({
+      titulo: "Eliminar contacto",
+      mensaje: "\u00bfQuieres eliminar este contacto?",
+      detalle: "Se quitar\u00e1 de la lista de contactos.",
+      confirmarTexto: "Eliminar",
+    });
+
     if (!confirmar) return;
 
     try {
